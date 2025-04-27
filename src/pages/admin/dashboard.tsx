@@ -1,17 +1,16 @@
+/// src/pages/admin/dashboard.tsx
 'use client';
 
 import { useState } from 'react';
 import { useFileUpload } from '@/features/hooks/useFileUpload';
-import { useDoctors } from '@/features/hooks/useDoctors';
-import EditDoctorModal from '@/components/admin/EditDoctorModal'; // ⭐ 추가된 부분
+import { useDoctors, Doctor } from '@/features/hooks/useDoctors';
+import EditDoctorModal from '@/components/admin/EditDoctorModal';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'upload' | 'manage'>('upload');
   const { selectedFile, fileData, handleFileChange, resetFile } = useFileUpload();
-  const { doctors, loading, error, deleteDoctor } = useDoctors();
-
-  // ⭐ 수정할 doctor를 저장하는 상태
-  const [editingDoctor, setEditingDoctor] = useState<any | null>(null);
+  const { doctors, loading, error, deleteDoctor, refetch } = useDoctors();
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 p-8">
@@ -36,12 +35,10 @@ export default function AdminDashboard() {
 
       {/* 탭 본문 */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        {/* 🔵 직원 등록 */}
         {activeTab === 'upload' && (
           <>
+            {/* 업로드 탭 내용 */}
             <h2 className="text-2xl font-bold mb-6">직원 일괄 등록</h2>
-
-            {/* 파일 업로드 박스 */}
             <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-10 mb-6 bg-gray-50 relative">
               <input
                 type="file"
@@ -55,8 +52,6 @@ export default function AdminDashboard() {
                 <div className="text-gray-400">파일을 선택하거나 여기로 드래그 하세요.</div>
               )}
             </div>
-
-            {/* 파일 미리보기 */}
             {fileData.length > 0 && (
               <div className="overflow-auto max-h-96 max-w-full border rounded-md mb-8">
                 <table className="min-w-max w-full text-sm text-left text-gray-500">
@@ -79,8 +74,6 @@ export default function AdminDashboard() {
                 </table>
               </div>
             )}
-
-            {/* 버튼 */}
             <div className="flex justify-center space-x-4 mb-8">
               <button
                 onClick={resetFile}
@@ -92,44 +85,14 @@ export default function AdminDashboard() {
                 확인하기
               </button>
             </div>
-
-            {/* 업로드 파일 양식 샘플 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">업로드 파일 양식 샘플 미리보기</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full border text-sm">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 border">보건소</th>
-                      <th className="px-4 py-2 border">이메일</th>
-                      <th className="px-4 py-2 border">성별</th>
-                      <th className="px-4 py-2 border">직책</th>
-                      <th className="px-4 py-2 border">연락처</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="px-4 py-2 border">중구 보건소</td>
-                      <td className="px-4 py-2 border">test@example.com</td>
-                      <td className="px-4 py-2 border">남</td>
-                      <td className="px-4 py-2 border">간호사</td>
-                      <td className="px-4 py-2 border">010-1234-5678</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
           </>
         )}
 
-        {/* 🟢 직원 관리 */}
         {activeTab === 'manage' && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-6">직원 관리</h2>
-
             {loading && <div className="text-center text-gray-500">불러오는 중...</div>}
             {error && <div className="text-center text-red-500">{error}</div>}
-
             {!loading && !error && (
               <div className="overflow-auto max-h-[600px]">
                 <table className="min-w-full border text-sm">
@@ -167,7 +130,7 @@ export default function AdminDashboard() {
                             삭제
                           </button>
                           <button
-                            onClick={() => setEditingDoctor(doctor)} // ⭐ 수정 버튼 클릭
+                            onClick={() => setSelectedDoctor(doctor)}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md text-sm"
                           >
                             수정
@@ -183,11 +146,12 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* ⭐ EditDoctorModal 표시 */}
-      {editingDoctor && (
+      {/* EditDoctorModal 표시 */}
+      {selectedDoctor && (
         <EditDoctorModal
-          doctor={editingDoctor}
-          onClose={() => setEditingDoctor(null)}
+          doctor={selectedDoctor}
+          onClose={() => setSelectedDoctor(null)}
+          onUpdated={() => refetch()}
         />
       )}
     </div>

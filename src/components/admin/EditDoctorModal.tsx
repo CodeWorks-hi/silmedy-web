@@ -61,12 +61,18 @@ export default function EditDoctorModal({ doctor, onClose, onUpdated }: EditDoct
         alert('수정 완료');
         onUpdated();
         onClose();
+        return; // ❗ 여기서 완전 종료
       } else {
+        throw new Error('응답 실패');
+      }
+    } catch (error: any) {
+      console.error('업데이트 에러:', error);
+  
+      // ❗ 정말 axios 에러만 실패 처리
+      if (error.response || error.request) {
         alert('수정 실패');
       }
-    } catch (error) {
-      console.error(error);
-      alert('수정 실패');
+      // JS에서 작은 에러 (ex. 모달 닫다가 에러) 무시
     } finally {
       setUpdating(false);
     }
