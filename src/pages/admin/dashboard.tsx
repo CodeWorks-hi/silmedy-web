@@ -7,29 +7,21 @@ import { useDoctors } from '@/features/hooks/useDoctors';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'upload' | 'manage'>('upload');
   const { selectedFile, fileData, handleFileChange, resetFile } = useFileUpload();
-  const { doctors, loading, error } = useDoctors();
-  
+  const { doctors, loading, error, deleteDoctor } = useDoctors();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 p-8">
       {/* 상단 탭 */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex space-x-4">
           <button
-            className={`px-4 py-2 rounded-t-lg ${
-              activeTab === 'upload'
-                ? 'bg-white border-b-2 border-cyan-500 font-bold'
-                : 'bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-t-lg ${activeTab === 'upload' ? 'bg-white border-b-2 border-cyan-500 font-bold' : 'bg-gray-100'}`}
             onClick={() => setActiveTab('upload')}
           >
             직원 등록
           </button>
           <button
-            className={`px-4 py-2 rounded-t-lg ${
-              activeTab === 'manage'
-                ? 'bg-white border-b-2 border-cyan-500 font-bold'
-                : 'bg-gray-100'
-            }`}
+            className={`px-4 py-2 rounded-t-lg ${activeTab === 'manage' ? 'bg-white border-b-2 border-cyan-500 font-bold' : 'bg-gray-100'}`}
             onClick={() => setActiveTab('manage')}
           >
             직원 관리
@@ -40,7 +32,7 @@ export default function AdminDashboard() {
 
       {/* 탭 본문 */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        {/* 🔵 직원 등록 탭 */}
+        {/* 🔵 직원 등록 */}
         {activeTab === 'upload' && (
           <>
             <h2 className="text-2xl font-bold mb-6">직원 일괄 등록</h2>
@@ -60,7 +52,7 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* 업로드한 파일 미리보기 */}
+            {/* 파일 미리보기 */}
             {fileData.length > 0 && (
               <div className="overflow-auto max-h-96 max-w-full border rounded-md mb-8">
                 <table className="min-w-max w-full text-sm text-left text-gray-500">
@@ -97,7 +89,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* 샘플 파일 양식 */}
+            {/* 업로드 파일 양식 샘플 */}
             <div>
               <h3 className="text-lg font-semibold mb-4">업로드 파일 양식 샘플 미리보기</h3>
               <div className="overflow-x-auto">
@@ -126,7 +118,7 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* 🟢 직원 관리 탭 */}
+        {/* 🟢 직원 관리 */}
         {activeTab === 'manage' && (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold mb-6">직원 관리</h2>
@@ -145,19 +137,18 @@ export default function AdminDashboard() {
                       <th className="px-4 py-2 border">이메일</th>
                       <th className="px-4 py-2 border">과</th>
                       <th className="px-4 py-2 border">연락처</th>
-                      <th className="px-4 py-2 border">학력</th>
-                      <th className="px-4 py-2 border">진료 가능 시간</th>
-                      <th className="px-4 py-2 border">생성일</th>
-                      <th className="px-4 py-2 border">비밀번호</th>
-                      <th className="px-4 py-2 border">병원 ID</th>
                       <th className="px-4 py-2 border">관리</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {doctors.map((doctor, idx) => (
-                      <tr key={idx}>
+                    {doctors.map((doctor) => (
+                      <tr key={doctor.license_number}>
                         <td className="px-4 py-2 border">
-                          <img src={doctor.profile_url || '/default-profile.png'} alt="profile" className="w-10 h-10 rounded-full mx-auto" />
+                          <img
+                            src={doctor.profile_url || '/default-profile.png'}
+                            alt="profile"
+                            className="w-10 h-10 rounded-full mx-auto"
+                          />
                         </td>
                         <td className="px-4 py-2 border">{doctor.name}</td>
                         <td className="px-4 py-2 border">{doctor.gender}</td>
@@ -165,24 +156,10 @@ export default function AdminDashboard() {
                         <td className="px-4 py-2 border">{doctor.department}</td>
                         <td className="px-4 py-2 border">{doctor.contact}</td>
                         <td className="px-4 py-2 border">
-                          {doctor.bio ? doctor.bio.join(', ') : '없음'}
-                        </td>
-                        <td className="px-4 py-2 border">
-                          {doctor.availability
-                            ? Object.entries(doctor.availability).map(([day, time]) => (
-                                <div key={day}>
-                                  {day}: {time}
-                                </div>
-                              ))
-                            : '없음'}
-                        </td>
-                        <td className="px-4 py-2 border">
-                          {doctor.created_at ? new Date(doctor.created_at).toLocaleString() : '없음'}
-                        </td>
-                        <td className="px-4 py-2 border">{doctor.password}</td>
-                        <td className="px-4 py-2 border">{doctor.hospital_id}</td>
-                        <td className="px-4 py-2 border">
-                          <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm">
+                          <button
+                            onClick={() => deleteDoctor(doctor.license_number)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm"
+                          >
                             삭제
                           </button>
                         </td>
