@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { useFileUpload } from '@/features/hooks/useFileUpload';
 import { useDoctors } from '@/features/hooks/useDoctors';
+import EditDoctorModal from '@/components/admin/EditDoctorModal'; // ⭐ 추가된 부분
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'upload' | 'manage'>('upload');
   const { selectedFile, fileData, handleFileChange, resetFile } = useFileUpload();
   const { doctors, loading, error, deleteDoctor } = useDoctors();
+
+  // ⭐ 수정할 doctor를 저장하는 상태
+  const [editingDoctor, setEditingDoctor] = useState<any | null>(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 p-8">
@@ -155,12 +159,18 @@ export default function AdminDashboard() {
                         <td className="px-4 py-2 border">{doctor.email}</td>
                         <td className="px-4 py-2 border">{doctor.department}</td>
                         <td className="px-4 py-2 border">{doctor.contact}</td>
-                        <td className="px-4 py-2 border">
+                        <td className="px-4 py-2 border space-x-2">
                           <button
                             onClick={() => deleteDoctor(doctor.license_number)}
                             className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md text-sm"
                           >
                             삭제
+                          </button>
+                          <button
+                            onClick={() => setEditingDoctor(doctor)} // ⭐ 수정 버튼 클릭
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md text-sm"
+                          >
+                            수정
                           </button>
                         </td>
                       </tr>
@@ -172,6 +182,14 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* ⭐ EditDoctorModal 표시 */}
+      {editingDoctor && (
+        <EditDoctorModal
+          doctor={editingDoctor}
+          onClose={() => setEditingDoctor(null)}
+        />
+      )}
     </div>
   );
 }
