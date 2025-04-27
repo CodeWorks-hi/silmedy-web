@@ -3,6 +3,24 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Node.js dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# 환경변수 파일
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
 # C extensions
 *.so
 
