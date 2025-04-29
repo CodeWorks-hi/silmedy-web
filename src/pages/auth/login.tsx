@@ -105,6 +105,7 @@ export default function LoginPage() {
         Cookie.set('department', formData.department);
 
         alert('의사 로그인 성공');
+        localStorage.setItem('doctor_id', res.data.license_number);
         router.push('/doctor/dashboard');
 
       } else {
