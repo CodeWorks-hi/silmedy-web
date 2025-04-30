@@ -1,7 +1,5 @@
-// src/firebase/firebase.ts
-
 import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 import {
   getDatabase,
   ref,
@@ -11,9 +9,8 @@ import {
   off,
   remove,
 } from 'firebase/database';
-import { getFirestore } from 'firebase/firestore'; // Firestore 필요 시 사용
+import { getFirestore } from 'firebase/firestore';
 
-// 환경변수에서 Firebase 설정 불러오기
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -24,17 +21,28 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!,
 };
 
-// 초기화
+// Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+
+// ✅ 브라우저 환경에서만 analytics 초기화
+let analytics: ReturnType<typeof getAnalytics> | null = null;
+
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
+
 const db = getDatabase(app);
-const firestore = getFirestore(app); // Firestore 필요 시
+const firestore = getFirestore(app);
 
 export {
   app,
   analytics,
   db,
-  firestore, // Firestore 쓰지 않으면 제거해도 무방
+  firestore,
   ref,
   set,
   onValue,

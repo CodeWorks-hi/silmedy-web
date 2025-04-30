@@ -2,18 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import axios from '@/lib/axios';
-import { initializeApp } from 'firebase/app';
 import {
-  getDatabase,
+  db,
   ref,
   set,
   push,
   onValue,
-} from 'firebase/database';
-import firebaseConfig from '@/lib/firebaseConfig';
-
-const firebaseApp = initializeApp(firebaseConfig);
-const database = getDatabase(firebaseApp);
+} from '@/firebase/firebase';
 
 export default function VideoCallPage() {
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -26,8 +21,8 @@ export default function VideoCallPage() {
 
   const handleStartCall = async () => {
     const payload = {
-      doctor_id: 'doctor_123456',        // 추후 로그인 정보로 대체
-      patient_id: 'patient_22',          // 추후 선택된 환자 ID로 대체
+      doctor_id: 'doctor_123456', // 실제 로그인 값으로 교체
+      patient_id: 'patient_22',   // 선택된 환자 ID로 교체
       created_at: new Date().toISOString(),
       status: 'waiting',
     };
@@ -41,7 +36,6 @@ export default function VideoCallPage() {
     }
   };
 
-  // WebRTC + Firebase signaling
   useEffect(() => {
     if (!roomId) return;
 
@@ -51,22 +45,19 @@ export default function VideoCallPage() {
 
     peerConnection.current = new RTCPeerConnection(servers);
 
-    // ICE 후보 수집
     peerConnection.current.onicecandidate = (event) => {
       if (event.candidate) {
-        const candidateRef = ref(database, `signaling/${roomId}/callerCandidates`);
+        const candidateRef = ref(db, `signaling/${roomId}/callerCandidates`);
         push(candidateRef, event.candidate.toJSON());
       }
     };
 
-    // Remote Stream 연결
     peerConnection.current.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
       }
     };
 
-    // 로컬 비디오 시작
     navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
       localStream.current = stream;
 
@@ -78,19 +69,17 @@ export default function VideoCallPage() {
         peerConnection.current?.addTrack(track, stream);
       });
 
-      // Offer 생성
       return peerConnection.current!.createOffer();
     }).then((offer) => {
       return peerConnection.current!.setLocalDescription(offer).then(() => offer);
     }).then((offer) => {
-      const offerRef = ref(database, `signaling/${roomId}/offer`);
-      return set(offerRef, offer.toJSON());
+      const offerRef = ref(db, `signaling/${roomId}/offer`);
+      return set(offerRef, offer);
     }).catch((err) => {
       console.error('❌ offer error:', err);
     });
 
-    // Answer 수신
-    const answerRef = ref(database, `signaling/${roomId}/answer`);
+    const answerRef = ref(db, `signaling/${roomId}/answer`);
     const unsubscribeAnswer = onValue(answerRef, (snapshot) => {
       const answer = snapshot.val();
       if (answer && !remoteSdpReceived) {
@@ -100,8 +89,7 @@ export default function VideoCallPage() {
       }
     });
 
-    // Callee ICE 수신
-    const calleeCandidatesRef = ref(database, `signaling/${roomId}/calleeCandidates`);
+    const calleeCandidatesRef = ref(db, `signaling/${roomId}/calleeCandidates`);
     const unsubscribeCallee = onValue(calleeCandidatesRef, (snapshot) => {
       snapshot.forEach((child) => {
         const candidate = child.val();

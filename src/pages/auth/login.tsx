@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import Cookie from 'js-cookie';
 
 interface Hospital {
   name: string;
@@ -52,47 +51,49 @@ export default function LoginPage() {
     const hospitalId = Number(e.target.value);
     setSelectedHospitalId(hospitalId);
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       if (!selectedHospitalId) {
         alert('보건소를 선택하세요.');
         return;
       }
-  
+
       const commonPayload: any = {
         role,
         hospital_id: selectedHospitalId,
         password: formData.password,
       };
-  
+
       if (role === 'doctor') {
         if (!formData.department || !formData.doctorId || !formData.password) {
           alert('모든 필드를 입력하세요.');
           return;
         }
-  
+
         commonPayload.license_number = formData.doctorId;
         commonPayload.department = formData.department;
       }
-  
+
       console.log('👀 payload 전송:', commonPayload);
-  
+
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login`, commonPayload);
-  
-      Cookie.set('role', role);
-  
+
+      const { access_token } = res.data;
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('role', role);
+
       if (role === 'doctor') {
-        Cookie.set('license_number', formData.doctorId);
-        Cookie.set('hospital_id', String(selectedHospitalId));
-        Cookie.set('department', formData.department);
+        localStorage.setItem('doctor_id', formData.doctorId);
+        localStorage.setItem('hospital_id', String(selectedHospitalId));
+        localStorage.setItem('department', formData.department);
         alert('의사 로그인 성공');
         router.push('/doctor/dashboard');
       } else if (role === 'admin') {
-        Cookie.set('admin_id', String(selectedHospitalId));
-        Cookie.set('hospital_id', String(selectedHospitalId));
+        localStorage.setItem('admin_id', String(selectedHospitalId));
+        localStorage.setItem('hospital_id', String(selectedHospitalId));
         alert('관리자 로그인 성공');
         router.push('/admin/dashboard');
       } else {

@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import PatientInfoCard from './PatientInfoCard';
 import PastDiagnosisList from './PastDiagnosisList';
 import ConsultActionButtons from './ConsultActionButtons';
-import VideoCallRoom from './VideoCallRoom';  // 🔹 WebRTC 영상통화 컴포넌트
+import VideoCallRoom from './VideoCallRoom';
 
 interface DoctorConsultTabProps {
+  doctorId: string;
   patientId: string | number;
 }
 
@@ -25,49 +26,37 @@ interface DiagnosisRecord {
   disease_code: string;
 }
 
-export default function DoctorConsultTab({ patientId }: DoctorConsultTabProps) {
+export default function DoctorConsultTab({ doctorId, patientId }: DoctorConsultTabProps) {
   const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null);
   const [diagnosisRecords, setDiagnosisRecords] = useState<DiagnosisRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [doctorId, setDoctorId] = useState<string | null>(null); // 🔸 localStorage에서 doctor_id
 
   useEffect(() => {
-    const storedDoctorId = localStorage.getItem('doctor_id');
-    if (storedDoctorId) setDoctorId(storedDoctorId);
-  }, []);
+    console.log('🔍 DoctorConsultTab mount - doctorId:', doctorId, 'patientId:', patientId);
 
-  useEffect(() => {
-    async function fetchPatientData() {
+    async function fetchData() {
       try {
-        const patientRes = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/patients/${patientId}`
-        );
-        const diagnosisRes = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/diagnosis/patient/${patientId}`
-        );
+        const patientRes = await axios.get(`/api/v1/patients/${patientId}`);
+        const diagnosisRes = await axios.get(`/api/v1/diagnosis/patient/${patientId}`);
 
         setPatientInfo(patientRes.data.patient);
         setDiagnosisRecords(diagnosisRes.data.diagnosis_records || []);
-      } catch (error) {
-        console.error('데이터 불러오기 실패:', error);
+      } catch (err) {
+        console.error('❌ 환자 데이터 조회 실패:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    if (patientId) {
-      fetchPatientData();
-    }
-  }, [patientId]);
+    if (doctorId && patientId) fetchData();
+  }, [doctorId, patientId]);
 
-  if (loading || !doctorId) {
-    return <div className="text-center mt-10">로딩 중입니다...</div>;
-  }
+  if (loading) return <div className="text-center">로딩 중...</div>;
 
   return (
     <div className="flex flex-col gap-6 p-6">
       {patientInfo && <PatientInfoCard patient={patientInfo} />}
-      <VideoCallRoom doctorId={doctorId} patientId={patientId} /> {/* 🔹 화상통화 */}
+      <VideoCallRoom doctorId={doctorId} patientId={patientId} />
       <PastDiagnosisList records={diagnosisRecords} />
       <ConsultActionButtons patientId={patientId} />
     </div>
