@@ -7,13 +7,13 @@ import DoctorConsultTab from '@/components/doctor/consult/DoctorConsultTab';
 export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState<'waiting' | 'consult'>('waiting');
   const [selectedPatientId, setSelectedPatientId] = useState<string | number | null>(null);
-  const [doctorId, setDoctorId] = useState<number | null>(null);
+  const [doctorId, setDoctorId] = useState<string | null>(null); // ✅ number → string
 
   // 🔵 doctorId 가져오기
   useEffect(() => {
     const storedDoctorId = localStorage.getItem('doctor_id');
     if (storedDoctorId) {
-      setDoctorId(Number(storedDoctorId));
+      setDoctorId(storedDoctorId); // ✅ 그대로 string으로 저장
     }
   }, []);
 
@@ -43,7 +43,7 @@ export default function DoctorDashboard() {
       <div className="bg-white p-6 rounded-lg shadow-md">
         {activeTab === 'waiting' && (
           <DoctorWaitingTab
-            doctorId={doctorId}
+            doctorId={doctorId} // ✅ string 전달
             onSelectPatient={(id) => {
               setSelectedPatientId(id);
               setActiveTab('consult');

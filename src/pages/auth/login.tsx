@@ -22,7 +22,6 @@ export default function LoginPage() {
     password: '',
   });
 
-  // 🔵 보건소 리스트 가져오기
   useEffect(() => {
     async function fetchHospitals() {
       try {
@@ -35,13 +34,11 @@ export default function LoginPage() {
     fetchHospitals();
   }, []);
 
-  // 🔵 입력 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 🔵 역할 변경 핸들러 (✅ formData 초기화만 하고 보건소는 유지)
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRole(e.target.value);
     setFormData({
@@ -49,67 +46,57 @@ export default function LoginPage() {
       doctorId: '',
       password: '',
     });
-    // ❗ selectedHospitalId는 초기화하지 않는다
   };
 
-  // 🔵 보건소 선택 핸들러
   const handleHospitalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const hospitalId = Number(e.target.value);
     setSelectedHospitalId(hospitalId);
   };
-
-  // 🔵 로그인 요청
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     try {
-      if (role === 'admin') {
-        if (!selectedHospitalId) {
-          alert('보건소를 선택하세요.');
-          return;
-        }
-
-        // ✅ 관리자 로그인
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login/admin`, {
-          admin_id: selectedHospitalId,
-          password: formData.password,
-        });
-
-        Cookie.set('role', 'admin');
-        Cookie.set('admin_id', String(selectedHospitalId));
-
-        alert('관리자 로그인 성공');
-        router.push('/admin/dashboard');
-
-      } else if (role === 'doctor') {
-        if (!selectedHospitalId) {
-          alert('보건소를 선택하세요.');
-          return;
-        }
+      if (!selectedHospitalId) {
+        alert('보건소를 선택하세요.');
+        return;
+      }
+  
+      const commonPayload: any = {
+        role,
+        hospital_id: selectedHospitalId,
+        password: formData.password,
+      };
+  
+      if (role === 'doctor') {
         if (!formData.department || !formData.doctorId || !formData.password) {
           alert('모든 필드를 입력하세요.');
           return;
         }
-
-        // ✅ 의사 로그인
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login/doctor`, {
-          license_number: formData.doctorId,
-          department: formData.department,
-          password: formData.password,
-          
-        });
-
-        Cookie.set('role', 'doctor');
+  
+        commonPayload.license_number = formData.doctorId;
+        commonPayload.department = formData.department;
+      }
+  
+      console.log('👀 payload 전송:', commonPayload);
+  
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login`, commonPayload);
+  
+      Cookie.set('role', role);
+  
+      if (role === 'doctor') {
         Cookie.set('license_number', formData.doctorId);
         Cookie.set('hospital_id', String(selectedHospitalId));
         Cookie.set('department', formData.department);
-
         alert('의사 로그인 성공');
-        localStorage.setItem('doctor_id', res.data.license_number);
         router.push('/doctor/dashboard');
-
+      } else if (role === 'admin') {
+        Cookie.set('admin_id', String(selectedHospitalId));
+        Cookie.set('hospital_id', String(selectedHospitalId));
+        alert('관리자 로그인 성공');
+        router.push('/admin/dashboard');
       } else {
-        alert('구분을 선택하세요.');
+        alert('역할을 선택하세요.');
       }
     } catch (error) {
       console.error(error);
@@ -123,7 +110,6 @@ export default function LoginPage() {
 
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
         <form onSubmit={handleSubmit}>
-          {/* 보건소 */}
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">보건소</label>
             <select
@@ -141,7 +127,6 @@ export default function LoginPage() {
             </select>
           </div>
 
-          {/* 구분 */}
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">구분</label>
             <select
@@ -156,7 +141,6 @@ export default function LoginPage() {
             </select>
           </div>
 
-          {/* 의사 전용 필드 */}
           {role === 'doctor' && (
             <>
               <div className="mb-4">
@@ -190,7 +174,6 @@ export default function LoginPage() {
             </>
           )}
 
-          {/* 비밀번호 */}
           <div className="mb-6">
             <label className="block mb-1 text-sm font-medium">비밀번호</label>
             <input

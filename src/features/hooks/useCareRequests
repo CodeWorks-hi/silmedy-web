@@ -19,7 +19,7 @@ export interface CareRequest {
   birth_date?: string;
 }
 
-export function useCareRequests(doctorId: number) {
+export function useCareRequests(doctorId: string) {
   const [careRequests, setCareRequests] = useState<CareRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function useCareRequests(doctorId: number) {
 
       // 🔵 로그인한 doctor_id + is_solved=false 조건 필터
       const filteredList = rawList.filter(
-        (req) => req.is_solved === false && req.doctor_id === doctorId
+        (req) => req.is_solved === false && String(req.doctor_id) === String(doctorId)
       );
 
       setCareRequests(filteredList);

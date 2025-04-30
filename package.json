@@ -22,6 +22,7 @@
   "homepage": "https://github.com/CodeWorks-hi/silmedy-web#readme",
   "dependencies": {
     "axios": "^1.9.0",
+    "firebase": "^11.6.1",
     "js-cookie": "^3.0.5",
     "next": "^15.3.1",
     "react": "^19.1.0",

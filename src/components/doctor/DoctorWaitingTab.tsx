@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface DoctorWaitingTabProps {
   onSelectPatient: (patientId: string | number) => void;
-  doctorId: number;
+  doctorId: string; // 🔧 number → string 으로 수정
 }
 
 export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWaitingTabProps) {
