@@ -1,26 +1,33 @@
-// src/components/doctor/consult/VideoCallRoom.tsx
+// src/components/VideoCallRoom.tsx
 
-'use client';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
+import { useWebRTC } from "@/webrtc/useWebRTC"; 
 
 interface Props {
-  doctorId: string;
-  patientId: string | number;
+  roomId: string;
 }
 
-export default function VideoCallRoom({ doctorId, patientId }: Props) {
-  const localVideoRef = useRef<HTMLVideoElement>(null);
+const VideoCallRoom: React.FC<Props> = ({ roomId }) => {
+  const { remoteStream } = useWebRTC(roomId);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // WebRTC 초기화 준비용
-    console.log("🔹 doctorId:", doctorId);
-    console.log("🔹 patientId:", patientId);
-  }, [doctorId, patientId]);
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
   return (
-    <div className="border rounded p-4 bg-gray-50">
-      <h3 className="font-bold mb-2">🔹 WebRTC 통화 시작</h3>
-      <video ref={localVideoRef} autoPlay playsInline muted className="w-full bg-black" />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <h2>원격 영상</h2>
+      <video
+        ref={remoteVideoRef}
+        autoPlay
+        playsInline
+        style={{ width: "80%", maxWidth: "600px", border: "1px solid #ccc", borderRadius: 8 }}
+      />
     </div>
   );
-}
+};
+
+export default VideoCallRoom;
