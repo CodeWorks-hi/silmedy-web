@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface DoctorWaitingTabProps {
   onSelectPatient: (patientId: string | number) => void;
-  doctorId: string; // 🔧 number → string 으로 수정
+  doctorId: string;
 }
 
 export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWaitingTabProps) {
@@ -16,17 +16,19 @@ export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWa
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>에러 발생: {error}</div>;
 
+  // 🔍 디버깅 로그
+  console.log('✅ 전체 진료 대기 리스트:', careRequests);
+
   // Pagination 처리
   const startIndex = (currentPage - 1) * itemsPerPage;
   const selectedRequests = careRequests.slice(startIndex, startIndex + itemsPerPage);
-
   const totalPages = Math.ceil(careRequests.length / itemsPerPage);
 
   return (
     <div className="space-y-4">
       <table className="min-w-full bg-white">
         <thead>
-          <tr className="bg-cyan-100">
+          <tr className="bg-cyan-100 text-center">
             <th className="py-2 px-4">진료과</th>
             <th className="py-2 px-4">이름</th>
             <th className="py-2 px-4">생년월일</th>
@@ -37,24 +39,31 @@ export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWa
           </tr>
         </thead>
         <tbody>
-          {selectedRequests.map((req) => (
-            <tr key={req.request_id} className="text-center border-t">
-              <td className="py-2 px-4">{req.department}</td>
-              <td className="py-2 px-4">{req.name || '-'}</td>
-              <td className="py-2 px-4">{req.birth_date || '-'}</td>
-              <td className="py-2 px-4">{req.book_date}</td>
-              <td className="py-2 px-4">{req.book_hour}</td>
-              <td className="py-2 px-4">{req.symptom_type.join(', ')}</td>
-              <td className="py-2 px-4">
-                <button
-                  onClick={() => onSelectPatient(req.patient_id)}
-                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
-                >
-                  진료 시작
-                </button>
-              </td>
-            </tr>
-          ))}
+          {selectedRequests.map((req) => {
+            console.log('▶️ 개별 req:', req); // 🔍 로그
+            return (
+              <tr key={req.request_id} className="text-center border-t">
+                <td className="py-2 px-4">{req.department}</td>
+                <td className="py-2 px-4">{req.name || '-'}</td>
+                <td className="py-2 px-4">{req.birth_date || '-'}</td>
+                <td className="py-2 px-4">{req.book_date}</td>
+                <td className="py-2 px-4">{req.book_hour}</td>
+                <td className="py-2 px-4">{req.symptom_type?.join(', ')}</td>
+                <td className="py-2 px-4">
+                // 버튼 클릭 시 request_id도 넘김
+                  <button
+                    onClick={() => {
+                      console.log('🟩 진료 시작 request_id:', req.request_id); // 디버깅
+                      onSelectPatient(req.request_id); // 👈 patient_id → request_id
+                    }}
+                    className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
+                  >
+                    진료 시작
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
