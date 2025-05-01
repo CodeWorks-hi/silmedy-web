@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DoctorWaitingTab from '@/components/doctor/DoctorWaitingTab';
 import DoctorConsultTab from '@/components/doctor/consult/DoctorConsultTab';
 
+
 export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState<'waiting' | 'consult'>('waiting');
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
@@ -50,9 +51,9 @@ export default function DoctorDashboard() {
         {activeTab === 'waiting' && (
           <DoctorWaitingTab
             doctorId={doctorId}
-            onSelectPatient={(requestId) => {
-              console.log('🟢 진료 시작 요청 ID:', requestId);
-              setSelectedRequestId(Number(requestId));
+            onSelectRequest={(requestId) => {
+              console.log('👨‍⚕️ 진료 시작 request_id:', requestId);
+              setSelectedRequestId(requestId);
               setActiveTab('consult');
             }}
           />

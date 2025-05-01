@@ -82,7 +82,7 @@ export default function LoginPage() {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login`, commonPayload);
 
       const { access_token } = res.data;
-      localStorage.setItem('aaccess_token', access_token);
+      localStorage.setItem('access_token', access_token);
       localStorage.setItem('role', role);
 
       if (role === 'doctor') {

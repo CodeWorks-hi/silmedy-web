@@ -2,19 +2,23 @@
 
 import { useCareRequests } from '@/features/hooks/useCareRequests';
 import { useState } from 'react';
+import axios from '@/lib/axios';
 
 interface DoctorWaitingTabProps {
-  onSelectPatient: (patientId: string | number) => void;
+  onSelectRequest: (requestId: number) => void;  // ✅ 명확하게 request_id
   doctorId: string;
 }
 
-export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWaitingTabProps) {
+export default function DoctorWaitingTab({ onSelectRequest, doctorId }: DoctorWaitingTabProps) {
   const { careRequests, loading, error } = useCareRequests(doctorId);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>에러 발생: {error}</div>;
+  if (error) {
+    console.error('❌ 대기 환자 API 실패:', error);
+    return <div>에러 발생: {error}</div>;
+  }
 
   // 🔍 디버깅 로그
   console.log('✅ 전체 진료 대기 리스트:', careRequests);
@@ -40,7 +44,7 @@ export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWa
         </thead>
         <tbody>
           {selectedRequests.map((req) => {
-            console.log('▶️ 개별 req:', req); // 🔍 로그
+            console.log('▶️ 개별 req:', req); // 🔍 개별 진료 요청
             return (
               <tr key={req.request_id} className="text-center border-t">
                 <td className="py-2 px-4">{req.department}</td>
@@ -50,11 +54,11 @@ export default function DoctorWaitingTab({ onSelectPatient, doctorId }: DoctorWa
                 <td className="py-2 px-4">{req.book_hour}</td>
                 <td className="py-2 px-4">{req.symptom_type?.join(', ')}</td>
                 <td className="py-2 px-4">
-                // 버튼 클릭 시 request_id도 넘김
+                  {/* 버튼 클릭 시 request_id 전달 */}
                   <button
                     onClick={() => {
-                      console.log('🟩 진료 시작 request_id:', req.request_id); // 디버깅
-                      onSelectPatient(req.request_id); // 👈 patient_id → request_id
+                      console.log('🟩 진료 시작 request_id:', req.request_id);
+                      onSelectRequest(req.request_id); // ✅ 정확한 requestId 전달
                     }}
                     className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
                   >

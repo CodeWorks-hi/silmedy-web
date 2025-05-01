@@ -6,13 +6,20 @@ import { useWebRTC } from '@/webrtc/useWebRTC';
 interface VideoCallRoomProps {
   doctorId: string;
   patientId: string | number;
+  onCallReady?: (actions: { startCall: () => void; stopCall: () => void }) => void;
 }
 
-export default function VideoCallRoom({ doctorId, patientId }: VideoCallRoomProps) {
+export default function VideoCallRoom({ doctorId, patientId, onCallReady }: VideoCallRoomProps) {
   const roomId = `room_${doctorId}_${patientId}`;
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const { localStream, remoteStream, startCall } = useWebRTC(roomId);
+  const { localStream, remoteStream, startCall, stopCall } = useWebRTC(roomId); // <- stopCall도 추가
+
+  useEffect(() => {
+    if (onCallReady) {
+      onCallReady({ startCall, stopCall });
+    }
+  }, [startCall, stopCall]);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -27,24 +34,9 @@ export default function VideoCallRoom({ doctorId, patientId }: VideoCallRoomProp
   }, [remoteStream]);
 
   return (
-    <div className="border p-4 rounded bg-gray-100">
-      <h3 className="font-bold mb-2">🎥 화상진료</h3>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm font-semibold">의사 화면</p>
-          <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-64 bg-black rounded" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold">환자 화면</p>
-          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-64 bg-black rounded" />
-        </div>
-      </div>
-      <button
-        onClick={startCall}
-        className="mt-4 px-4 py-2 bg-cyan-500 text-white rounded"
-      >
-        통화 시작
-      </button>
+    <div className="relative bg-black rounded-lg overflow-hidden">
+      <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-[400px] object-cover" />
+      <video ref={localVideoRef} autoPlay playsInline muted className="absolute top-2 right-2 w-32 h-24 rounded border border-white" />
     </div>
   );
 }
