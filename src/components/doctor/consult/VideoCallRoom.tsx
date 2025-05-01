@@ -10,10 +10,13 @@ interface VideoCallRoomProps {
 }
 
 export default function VideoCallRoom({ doctorId, patientId, onCallReady }: VideoCallRoomProps) {
-  const roomId = `${doctorId}_${patientId}_타임스탭프`;
+  const now = new Date();
+  const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+  const roomId = `${doctorId}_${patientId}_${timestamp}`;
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  const { localStream, remoteStream, startCall, stopCall } = useWebRTC(roomId); // <- stopCall도 추가
+  const { localStream, remoteStream, startCall, stopCall } = useWebRTC(roomId);
 
   useEffect(() => {
     if (onCallReady) {
