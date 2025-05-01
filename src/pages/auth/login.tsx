@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '@/firebase/firebase';
 
 interface Hospital {
   name: string;
@@ -81,7 +83,11 @@ export default function LoginPage() {
 
       const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/login`, commonPayload);
 
-      const { access_token } = res.data;
+      const { access_token, firebase_token } = res.data;
+
+      // ✅ Firebase Auth 로그인 (공통 적용)
+      await signInWithCustomToken(auth, firebase_token);
+
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('role', role);
 

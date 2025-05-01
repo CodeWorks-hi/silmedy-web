@@ -1,7 +1,13 @@
+// pages/index.tsx
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+
 export default function Home() {
-    return (
-      <div className="text-3xl font-bold text-blue-500">
-        실메디 시작
-      </div>
-    );
-  }
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/auth/login')  // 🔁 로그인 페이지로 리다이렉트
+  }, [])
+
+  return null
+}

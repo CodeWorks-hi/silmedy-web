@@ -46,7 +46,7 @@ export default function DoctorConsultTab({ doctorId, requestId }: DoctorConsultT
           name: data.name,
           birth_date: data.birth_date,
           contact: data.contact,
-          patient_id: data.patient_id // 🔴 반드시 필요
+          patient_id: data.patient_id, // 🔴 반드시 있어야 함
         });
       } catch (err) {
         console.error('❌ 환자 정보 로딩 실패:', err);
@@ -106,11 +106,14 @@ export default function DoctorConsultTab({ doctorId, requestId }: DoctorConsultT
       {/* 오른쪽 영역 - 영상진료 및 제어 */}
       <div className="w-2/5 bg-white p-4 rounded shadow flex flex-col justify-between">
         <div className="relative">
-          <VideoCallRoom
-            doctorId={doctorId}
-            patientId={patientInfo?.patient_id}
-            onCallReady={(actions) => setCallActions(actions)} // ✅ 버튼 연결
-          />
+          {/* ✅ patient_id가 있을 때만 VideoCallRoom 렌더링 */}
+          {patientInfo?.patient_id && (
+            <VideoCallRoom
+              doctorId={doctorId}
+              patientId={patientInfo.patient_id}
+              onCallReady={(actions) => setCallActions(actions)}
+            />
+          )}
         </div>
 
         {/* 제어 버튼 */}

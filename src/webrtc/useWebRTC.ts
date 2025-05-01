@@ -53,6 +53,15 @@ export function useWebRTC(roomId: string) {
       });
     });
   };
+  
+  const stopCall = () => {
+    if (peerRef.current) {
+      peerRef.current.close();
+      peerRef.current = null;
+      setLocalStream(null);
+      setRemoteStream(null);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -65,5 +74,5 @@ export function useWebRTC(roomId: string) {
     };
   }, [roomId]);
 
-  return { localStream, remoteStream, startCall };
+  return { localStream, remoteStream, startCall, stopCall };
 }

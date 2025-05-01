@@ -10,6 +10,7 @@ import {
   remove,
 } from 'firebase/database';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -37,12 +38,14 @@ if (typeof window !== 'undefined') {
 
 const db = getDatabase(app);
 const firestore = getFirestore(app);
+const auth = getAuth(app);
 
 export {
   app,
   analytics,
   db,
   firestore,
+  auth,
   ref,
   set,
   onValue,

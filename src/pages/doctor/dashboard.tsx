@@ -1,36 +1,35 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRequireAuth } from '@/features/hooks/useRequireAuth';
 import DoctorWaitingTab from '@/components/doctor/DoctorWaitingTab';
 import DoctorConsultTab from '@/components/doctor/consult/DoctorConsultTab';
-
+import { useState, useEffect } from 'react';
 
 export default function DoctorDashboard() {
+  const { loading, isAuthenticated } = useRequireAuth();
+
   const [activeTab, setActiveTab] = useState<'waiting' | 'consult'>('waiting');
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
 
-  // 🔵 doctorId 가져오기
   useEffect(() => {
     const storedDoctorId = localStorage.getItem('doctor_id');
     if (storedDoctorId) {
       setDoctorId(storedDoctorId);
-      console.log('✅ doctor_id:', storedDoctorId);
     }
   }, []);
 
-  useEffect(() => {
-    console.log('📌 현재 탭:', activeTab);
-    console.log('📌 선택된 진료 요청 ID:', selectedRequestId);
-  }, [activeTab, selectedRequestId]);
+  if (loading) {
+    return <div className="text-center mt-10">인증 확인 중...</div>;
+  }
 
-  if (!doctorId) {
-    return <div className="text-center mt-10">의사 정보를 불러오는 중입니다...</div>;
+  if (!isAuthenticated || !doctorId) {
+    return <div className="text-center mt-10">접근 권한이 없습니다.</div>;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-cyan-100 p-8">
-      {/* 상단 탭 */}
+      {/* 탭 UI */}
       <div className="flex space-x-4 mb-8">
         <button
           className={`px-4 py-2 rounded-t-lg ${activeTab === 'waiting' ? 'bg-white border-b-2 border-cyan-500 font-bold' : 'bg-gray-100'}`}
@@ -52,18 +51,13 @@ export default function DoctorDashboard() {
           <DoctorWaitingTab
             doctorId={doctorId}
             onSelectRequest={(requestId) => {
-              console.log('👨‍⚕️ 진료 시작 request_id:', requestId);
               setSelectedRequestId(requestId);
               setActiveTab('consult');
             }}
           />
         )}
-
         {activeTab === 'consult' && selectedRequestId !== null && (
-          <DoctorConsultTab
-            doctorId={doctorId}
-            requestId={selectedRequestId}
-          />
+          <DoctorConsultTab doctorId={doctorId} requestId={selectedRequestId} />
         )}
       </div>
     </div>

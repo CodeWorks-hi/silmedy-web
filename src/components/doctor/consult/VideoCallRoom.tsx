@@ -10,7 +10,7 @@ interface VideoCallRoomProps {
 }
 
 export default function VideoCallRoom({ doctorId, patientId, onCallReady }: VideoCallRoomProps) {
-  const roomId = `room_${doctorId}_${patientId}`;
+  const roomId = `${doctorId}_${patientId}_타임스탭프`;
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const { localStream, remoteStream, startCall, stopCall } = useWebRTC(roomId); // <- stopCall도 추가
@@ -19,7 +19,7 @@ export default function VideoCallRoom({ doctorId, patientId, onCallReady }: Vide
     if (onCallReady) {
       onCallReady({ startCall, stopCall });
     }
-  }, [startCall, stopCall]);
+  }, []);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
