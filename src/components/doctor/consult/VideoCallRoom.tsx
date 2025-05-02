@@ -3,43 +3,37 @@
 import { useEffect, useRef } from 'react';
 import { useWebRTC } from '@/webrtc/useWebRTC';
 
-interface VideoCallRoomProps {
+export default function VideoCallRoom({
+  doctorId,
+  patientId,
+  roomId,
+  onCallReady,
+}:{
   doctorId: string;
-  patientId: string | number;
-  onCallReady?: (actions: { startCall: () => void; stopCall: () => void }) => void;
-}
+  patientId: string|number;
+  roomId:    string;
+  onCallReady?: (actions:{startCall():void,stopCall():void})=>void;
+}) {
+  const localRef  = useRef<HTMLVideoElement>(null);
+  const remoteRef = useRef<HTMLVideoElement>(null);
 
-export default function VideoCallRoom({ doctorId, patientId, onCallReady }: VideoCallRoomProps) {
-  const now = new Date();
-  const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-  const roomId = `${doctorId}_${patientId}_${timestamp}`;
-
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const { localStream, remoteStream, startCall, stopCall } = useWebRTC(roomId);
 
   useEffect(() => {
-    if (onCallReady) {
-      onCallReady({ startCall, stopCall });
-    }
-  }, []);
+    onCallReady?.({ startCall, stopCall });
+  }, [onCallReady, startCall, stopCall]);
 
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-    }
+    if(localRef.current)  localRef.current.srcObject  = localStream;
   }, [localStream]);
-
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
+    if(remoteRef.current) remoteRef.current.srcObject = remoteStream;
   }, [remoteStream]);
 
   return (
     <div className="relative bg-black rounded-lg overflow-hidden">
-      <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-[400px] object-cover" />
-      <video ref={localVideoRef} autoPlay playsInline muted className="absolute top-2 right-2 w-32 h-24 rounded border border-white" />
+      <video ref={remoteRef} autoPlay playsInline className="w-full h-[400px] object-cover" />
+      <video ref={localRef}  autoPlay playsInline muted className="absolute top-2 right-2 w-32 h-24 rounded border border-white" />
     </div>
   );
 }

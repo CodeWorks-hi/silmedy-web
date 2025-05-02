@@ -5,128 +5,90 @@ import axios from '@/lib/axios';
 import VideoCallRoom from './VideoCallRoom';
 import PastDiagnosisList from './PastDiagnosisList';
 
-interface DoctorConsultTabProps {
+export default function DoctorConsultTab({
+  doctorId,
+  requestId,
+  roomId,
+}:{
   doctorId: string;
   requestId: number;
-}
-
-export default function DoctorConsultTab({ doctorId, requestId }: DoctorConsultTabProps) {
+  roomId:    string;
+}) {
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [diagnosisRecords, setDiagnosisRecords] = useState([]);
-  const [callActions, setCallActions] = useState<{ startCall: () => void; stopCall: () => void } | null>(null);
+  const [callActions, setCallActions] = useState<{
+    startCall(): void;
+    stopCall(): void;
+  } | null>(null);
 
-  // 🔵 통화 시작
-  const handleStartCall = () => {
-    if (callActions) callActions.startCall();
-  };
-
-  // 🔴 통화 종료
-  const handleStopCall = () => {
-    if (callActions) callActions.stopCall();
-  };
-
-  // 🟠 진료 종료
-  const handleCompleteConsult = async () => {
-    try {
-      await axios.patch(`/api/v1/care-requests/${requestId}/complete`);
-      alert('진료 종료되었습니다.');
-    } catch (err) {
-      console.error('❌ 진료 종료 실패:', err);
-      alert('진료 종료 중 오류가 발생했습니다.');
-    }
-  };
-
-  // ✅ 진료 요청 상세 조회 (환자 정보 포함)
+  // ❶ 환자 정보 조회
   useEffect(() => {
-    async function fetchCareRequestDetail() {
-      try {
-        const res = await axios.get(`/api/v1/care-requests/${requestId}`);
-        const data = res.data;
-        setPatientInfo({
-          name: data.name,
-          birth_date: data.birth_date,
-          contact: data.contact,
-          patient_id: data.patient_id, // 🔴 반드시 있어야 함
-        });
-      } catch (err) {
-        console.error('❌ 환자 정보 로딩 실패:', err);
-      }
-    }
-
-    fetchCareRequestDetail();
+    axios.get(`/api/v1/care-requests/${requestId}`)
+         .then(res => setPatientInfo(res.data))
+         .catch(console.error);
   }, [requestId]);
 
-  // ✅ 진단 기록 불러오기
+  // ❷ 과거 진료 기록
   useEffect(() => {
-    async function fetchDiagnosisRecords() {
-      try {
-        const res = await axios.get(`/api/v1/diagnosis/patient/${patientInfo?.patient_id}`);
-        setDiagnosisRecords(res.data.diagnosis_records || []);
-      } catch (err) {
-        console.error('❌ 진단 기록 로딩 실패:', err);
-      }
-    }
-
-    if (patientInfo?.patient_id) {
-      fetchDiagnosisRecords();
-    }
+    if (!patientInfo?.patient_id) return;
+    axios.get(`/api/v1/diagnosis/patient/${patientInfo.patient_id}`)
+         .then(res => setDiagnosisRecords(res.data.diagnosis_records||[]))
+         .catch(console.error);
   }, [patientInfo?.patient_id]);
+
+  // ❸ WebRTC offer 전송 + 환자 알림
+  const handleStartCall = async () => {
+    callActions?.startCall();
+    try {
+      await axios.post('/api/v1/video-call/start', {
+        call_id:    roomId,
+        doctor_id:  doctorId,
+        patient_id: patientInfo.patient_id,
+      });
+      alert('환자에게 통화 요청을 보냈습니다.');
+    } catch (err) {
+      console.error('❌ 영상 진료 시작 오류:', err);
+      alert('통화 요청에 실패했습니다.');
+    }
+  };
+
+  // ❹ WebRTC 해제 / 진료 완료
+  const handleStopCall = () => callActions?.stopCall();
+  const handleComplete = async () => {
+    await axios.patch(`/api/v1/care-requests/${requestId}/complete`);
+    alert('진료를 종료했습니다.');
+  };
 
   return (
     <div className="flex gap-4">
-      {/* 왼쪽 영역 - 환자 정보 및 기록 */}
+      {/* 좌측: 환자 정보 + 진료 기록 */}
       <div className="w-3/5 space-y-6">
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">🧑‍⚕️ 진료중 환자</h2>
-          {patientInfo ? (
-            <table className="table-auto text-left w-full">
-              <tbody>
-                <tr>
-                  <th className="py-1 w-24">이름</th>
-                  <td>{patientInfo.name}</td>
-                </tr>
-                <tr>
-                  <th className="py-1">생년월일</th>
-                  <td>{patientInfo.birth_date}</td>
-                </tr>
-                <tr>
-                  <th className="py-1">연락처</th>
-                  <td>{patientInfo.contact}</td>
-                </tr>
-              </tbody>
-            </table>
-          ) : (
-            <div>로딩 중...</div>
-          )}
-        </div>
-
+        {patientInfo ? (
+          <table className="table-auto w-full">
+            <tbody>
+              <tr><th>이름</th><td>{patientInfo.name}</td></tr>
+              <tr><th>생년월일</th><td>{patientInfo.birth_date}</td></tr>
+              <tr><th>연락처</th><td>{patientInfo.contact}</td></tr>
+            </tbody>
+          </table>
+        ) : <div>로딩 중…</div>}
         <PastDiagnosisList records={diagnosisRecords} />
       </div>
 
-      {/* 오른쪽 영역 - 영상진료 및 제어 */}
+      {/* 우측: 영상 진료 UI + 제어 */}
       <div className="w-2/5 bg-white p-4 rounded shadow flex flex-col justify-between">
-        <div className="relative">
-          {/* ✅ patient_id가 있을 때만 VideoCallRoom 렌더링 */}
-          {patientInfo?.patient_id && (
-            <VideoCallRoom
-              doctorId={doctorId}
-              patientId={patientInfo.patient_id}
-              onCallReady={(actions) => setCallActions(actions)}
-            />
-          )}
-        </div>
-
-        {/* 제어 버튼 */}
+        {patientInfo?.patient_id && (
+          <VideoCallRoom
+            doctorId={doctorId}
+            patientId={patientInfo.patient_id}
+            roomId={roomId}
+            onCallReady={actions => setCallActions(actions)}
+          />
+        )}
         <div className="mt-4 flex justify-center space-x-4">
-          <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={handleStartCall}>
-            영상 진료 시작
-          </button>
-          <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={handleStopCall}>
-            영상 진료 종료
-          </button>
-          <button className="bg-gray-700 text-white px-4 py-2 rounded" onClick={handleCompleteConsult}>
-            진료 종료
-          </button>
+          <button onClick={handleStartCall}   className="bg-green-600 text-white px-4 py-2 rounded">영상 진료 시작</button>
+          <button onClick={handleStopCall}    className="bg-red-500   text-white px-4 py-2 rounded">영상 진료 종료</button>
+          <button onClick={handleComplete}    className="bg-gray-700  text-white px-4 py-2 rounded">진료 종료</button>
         </div>
       </div>
     </div>
