@@ -45,7 +45,7 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
   const handleStartCall = async () => {
     callActions?.startCall();
     try {
-      await apiStartCall({ room_id: roomId, doctor_id: doctorId, patient_id: patientInfo.patient_id,patient_fcm_token: patientInfo.fcm_token});
+      await apiStartCall({ call_id: roomId, doctor_id: doctorId, patient_id: patientInfo.patient_id,patient_fcm_token: patientInfo.fcm_token});
       alert('환자에게 통화 요청을 보냈습니다.');
     } catch (err) {
       console.error('영상 진료 시작 오류:', err);
