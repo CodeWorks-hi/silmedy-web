@@ -29,7 +29,7 @@ export default function ConsultActionButtons({ patientId }: ConsultActionButtons
   const handleEndConsult = async () => {
     if (confirm('진료를 종료하고 완료 처리하시겠습니까?')) {
       try {
-        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/care-requests/solve/${patientId}`);
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/care-requests/solve/${patientId}`);
         alert('진료가 종료되었습니다.');
         window.location.reload();
       } catch (error) {

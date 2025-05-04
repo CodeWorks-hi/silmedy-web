@@ -23,7 +23,7 @@ export default function PrescriptionModal({ isOpen, onClose, patientId, doctorId
     }
 
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/prescriptions/create`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/prescriptions/create`, {
         patient_id: patientId,
         doctor_id: doctorId,
         medication_days: medicationDays,

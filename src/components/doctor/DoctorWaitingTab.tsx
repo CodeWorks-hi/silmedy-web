@@ -1,47 +1,95 @@
+// src/components/doctor/DoctorWaitingTab.tsx
 'use client';
 
+import { useState } from 'react';
 import { useCareRequests } from '@/features/hooks/useCareRequests';
 
+interface DoctorWaitingTabProps {
+  doctorId: string;
+  onSelectRequest: (requestId: number) => void;
+}
+
+/**
+ * DoctorWaitingTab 컴포넌트
+ * - useCareRequests 훅으로 대기 환자 목록 조회
+ * - 페이징 처리 후 테이블 렌더링
+ * - “진료 시작” 버튼 클릭 시 상위 컴포넌트에 request_id 전달
+ */
 export default function DoctorWaitingTab({
   doctorId,
   onSelectRequest,
-}:{
-  doctorId: string;
-  onSelectRequest: (requestId: number) => void;
-}) {
+}: DoctorWaitingTabProps) {
+  // 1) 대기 환자 목록 조회
   const { careRequests, loading, error } = useCareRequests(doctorId);
 
-  if (loading) return <div>로딩 중…</div>;
-  if (error)   return <div>에러 발생: {error}</div>;
+  // 2) 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // 3) 로딩 및 에러 처리
+  if (loading) {
+    return <div>로딩 중...</div>;
+  }
+  if (error) {
+    return <div className="text-red-500">에러: {error}</div>;
+  }
+
+  // 4) 유효한 배열로 변환 후 페이지 데이터 산출
+  const validRequests = careRequests ?? [];
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageData = validRequests.slice(start, start + itemsPerPage);
+  const totalPages = Math.ceil(validRequests.length / itemsPerPage);
 
   return (
-    <table className="min-w-full bg-white">
-      <thead className="bg-cyan-100 text-center">
-        <tr>
-          <th>진료과</th><th>이름</th><th>생년월일</th>
-          <th>진료일자</th><th>진료시간</th><th>증상</th><th>액션</th>
-        </tr>
-      </thead>
-      <tbody>
-        {careRequests.map(req => (
-          <tr key={req.request_id} className="text-center border-t">
-            <td>{req.department}</td>
-            <td>{req.name || '-'}</td>
-            <td>{req.birth_date || '-'}</td>
-            <td>{req.book_date}</td>
-            <td>{req.book_hour}</td>
-            <td>{req.symptom_type?.join(', ')}</td>
-            <td>
-              <button
-                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
-                onClick={() => onSelectRequest(req.request_id)}
-              >
-                진료 시작
-              </button>
-            </td>
+    <div className="space-y-4">
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr className="bg-cyan-100 text-center">
+            <th className="py-2 px-4">진료과</th>
+            <th className="py-2 px-4">이름</th>
+            <th className="py-2 px-4">생년월일</th>
+            <th className="py-2 px-4">진료일자</th>
+            <th className="py-2 px-4">진료시간</th>
+            <th className="py-2 px-4">증상</th>
+            <th className="py-2 px-4">액션</th>
           </tr>
+        </thead>
+        <tbody>
+          {pageData.map((req) => (
+            <tr key={req.request_id} className="text-center border-t">
+              <td className="py-2 px-4">{req.department}</td>
+              <td className="py-2 px-4">{req.name || '-'}</td>
+              <td className="py-2 px-4">{req.birth_date || '-'}</td>
+              <td className="py-2 px-4">{req.book_date}</td>
+              <td className="py-2 px-4">{req.book_hour}</td>
+              <td className="py-2 px-4">{req.symptom_type?.join(', ')}</td>
+              <td className="py-2 px-4">
+                <button
+                  onClick={() => onSelectRequest(req.request_id)}
+                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
+                >
+                  진료 시작
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* 페이지 네비게이션 */}
+      <div className="flex justify-center space-x-2 mt-4">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`px-3 py-1 rounded ${
+              currentPage === page ? 'bg-cyan-500 text-white' : 'bg-gray-200'
+            }`}
+          >
+            {page}
+          </button>
         ))}
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 }

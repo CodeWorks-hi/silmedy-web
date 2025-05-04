@@ -28,7 +28,7 @@ export default function VideoCallPage() {
     };
 
     try {
-      const res = await axios.post('/api/v1/video-call/create', payload);
+      const res = await axios.post('/video-call/create', payload);
       setRoomId(res.data.id);
       alert(`✅ 통화방 생성 완료: ${res.data.id}`);
     } catch (e) {
