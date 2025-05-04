@@ -21,7 +21,7 @@ export default function VideoCallRoom({
 
   useEffect(() => {
     onCallReady?.({ startCall, stopCall });
-  }, [onCallReady, startCall, stopCall]);
+  }, []);
 
   useEffect(() => {
     if(localRef.current)  localRef.current.srcObject  = localStream;
