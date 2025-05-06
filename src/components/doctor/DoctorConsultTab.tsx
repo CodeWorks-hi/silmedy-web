@@ -1,7 +1,6 @@
-// src/components/doctor/DoctorConsultTab.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   getCareRequestDetail,
   getPatientDiagnosis,
@@ -19,64 +18,89 @@ interface Props {
 }
 
 export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props) {
-  // 1) 환자 기본 정보
-  const [patientInfo, setPatientInfo]         = useState<any>(null);
-  // 2) 과거 진료 기록
+  const [patientInfo, setPatientInfo] = useState<any>(null);
   const [diagnosisRecords, setDiagnosisRecords] = useState<any[]>([]);
-  // 3) WebRTC 제어 핸들러
-  const [callActions, setCallActions]         = useState<{ startCall(): void; stopCall(): void } | null>(null);
+  const [callActions, setCallActions] = useState<{
+    startCall(): void;
+    stopCall(): void;
+  } | null>(null);
 
-  // 환자 정보 조회
+  // 🎯 한 번만 setCallActions
+  const handleCallReady = useCallback(
+    ({ startCall, stopCall }: { startCall(): void; stopCall(): void }) => {
+      console.log('📱 WebRTC 제어 핸들러 수신됨:', { startCall, stopCall });
+      setCallActions({ startCall, stopCall });
+    },
+    []
+  );
+
+  // 1) 환자 정보
   useEffect(() => {
+    console.log('🩺 진료 요청 정보 조회 시작:', requestId);
     getCareRequestDetail(requestId)
-      .then(data => setPatientInfo(data))
-      .catch(console.error);
+      .then(data => {
+        console.log('✅ 진료 요청 정보 수신:', data);
+        setPatientInfo(data);
+      })
+      .catch(err => console.error('❌ 진료 요청 정보 조회 실패:', err));
   }, [requestId]);
 
-  // 과거 진료 기록 조회
+  // 2) 과거 진료 기록
   useEffect(() => {
     if (!patientInfo?.patient_id) return;
+    console.log('📜 환자 과거 진료 기록 조회:', patientInfo.patient_id);
     getPatientDiagnosis(String(patientInfo.patient_id))
-      .then(list => setDiagnosisRecords(list))
-      .catch(console.error);
+      .then(list => {
+        console.log('✅ 진료 기록 수신:', list);
+        setDiagnosisRecords(list);
+      })
+      .catch(err => console.error('❌ 진료 기록 조회 실패:', err));
   }, [patientInfo]);
 
-  // 영상 진료 시작
+  // ▶️ 영상 통화 시작
   const handleStartCall = async () => {
+    console.log('📞 영상 통화 시작 요청');
     callActions?.startCall();
     try {
-      await apiStartCall({ call_id: roomId, doctor_id: doctorId, patient_id: patientInfo.patient_id,patient_fcm_token: patientInfo.fcm_token});
+      await apiStartCall({
+        call_id: roomId,
+        doctor_id: doctorId,
+        patient_id: patientInfo.patient_id,
+        patient_fcm_token: patientInfo.fcm_token,
+      });
       alert('환자에게 통화 요청을 보냈습니다.');
     } catch (err) {
-      console.error('영상 진료 시작 오류:', err);
+      console.error('❌ 통화 요청 실패:', err);
       alert('통화 요청에 실패했습니다.');
     }
   };
 
-  // 영상 진료 종료
+  // ⏹️ 영상 통화 종료
   const handleStopCall = async () => {
+    console.log('📴 영상 통화 종료 요청');
     callActions?.stopCall();
     try {
       await endCall({ room_id: roomId });
     } catch (err) {
-      console.error('영상 진료 종료 오류:', err);
+      console.error('❌ 통화 종료 실패:', err);
     }
   };
 
-  // 진료 완료
+  // ✅ 진료 완료
   const handleComplete = async () => {
+    console.log('✅ 진료 완료 요청:', requestId);
     try {
       await completeRequest(requestId);
       alert('진료를 종료했습니다.');
     } catch (err) {
-      console.error('진료 완료 오류:', err);
+      console.error('❌ 진료 완료 처리 실패:', err);
       alert('진료 종료 처리에 실패했습니다.');
     }
   };
 
   return (
     <div className="flex gap-4">
-      {/* 좌측: 환자 정보 + 과거 진료 기록 */}
+      {/* 좌측: 환자 정보 + 진료 기록 */}
       <div className="w-3/5 space-y-6">
         {patientInfo ? (
           <table className="table-auto w-full">
@@ -92,14 +116,14 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
         <PastDiagnosisList records={diagnosisRecords} />
       </div>
 
-      {/* 우측: 영상 진료 UI + 제어 버튼 */}
+      {/* 우측: 영상 통화 화면 */}
       <div className="w-2/5 bg-white p-4 rounded shadow flex flex-col justify-between">
         {patientInfo?.patient_id && (
           <VideoCallRoom
             doctorId={doctorId}
             patientId={patientInfo.patient_id}
             roomId={roomId}
-            onCallReady={actions => setCallActions(actions)}
+            onCallReady={handleCallReady}
           />
         )}
         <div className="mt-4 flex justify-center space-x-4">
