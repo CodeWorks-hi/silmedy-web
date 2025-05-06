@@ -3,13 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   getCareRequestDetail,
-  getPatientDiagnosis,
   startCall as apiStartCall,
   endCall,
   completeRequest,
 } from '@/lib/api';
 import VideoCallRoom from '@/components/doctor/consult/VideoCallRoom';
-import PastDiagnosisList from '@/components/doctor/consult/PastDiagnosisList';
+import PastDiagnosisSection from '@/components/doctor/consult/PastDiagnosisSection'; // ✅ 과거 진료 기록 조회 + 표시
 
 interface Props {
   doctorId: string;
@@ -18,14 +17,16 @@ interface Props {
 }
 
 export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props) {
+  // 🔹 환자 정보 상태
   const [patientInfo, setPatientInfo] = useState<any>(null);
-  const [diagnosisRecords, setDiagnosisRecords] = useState<any[]>([]);
+
+  // 🔹 WebRTC 통화 제어 함수 상태
   const [callActions, setCallActions] = useState<{
     startCall(): void;
     stopCall(): void;
   } | null>(null);
 
-  // 🎯 한 번만 setCallActions
+  // ✅ WebRTC 준비 완료 시 콜백 핸들러 등록
   const handleCallReady = useCallback(
     ({ startCall, stopCall }: { startCall(): void; stopCall(): void }) => {
       console.log('📱 WebRTC 제어 핸들러 수신됨:', { startCall, stopCall });
@@ -34,7 +35,7 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
     []
   );
 
-  // 1) 환자 정보
+  // ✅ 진료 요청 + 환자 정보 로딩
   useEffect(() => {
     console.log('🩺 진료 요청 정보 조회 시작:', requestId);
     getCareRequestDetail(requestId)
@@ -45,19 +46,7 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
       .catch(err => console.error('❌ 진료 요청 정보 조회 실패:', err));
   }, [requestId]);
 
-  // 2) 과거 진료 기록
-  useEffect(() => {
-    if (!patientInfo?.patient_id) return;
-    console.log('📜 환자 과거 진료 기록 조회:', patientInfo.patient_id);
-    getPatientDiagnosis(String(patientInfo.patient_id))
-      .then(list => {
-        console.log('✅ 진료 기록 수신:', list);
-        setDiagnosisRecords(list);
-      })
-      .catch(err => console.error('❌ 진료 기록 조회 실패:', err));
-  }, [patientInfo]);
-
-  // ▶️ 영상 통화 시작
+  // ✅ 영상 통화 시작
   const handleStartCall = async () => {
     console.log('📞 영상 통화 시작 요청');
     callActions?.startCall();
@@ -75,7 +64,7 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
     }
   };
 
-  // ⏹️ 영상 통화 종료
+  // ✅ 영상 통화 종료
   const handleStopCall = async () => {
     console.log('📴 영상 통화 종료 요청');
     callActions?.stopCall();
@@ -86,7 +75,7 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
     }
   };
 
-  // ✅ 진료 완료
+  // ✅ 진료 종료
   const handleComplete = async () => {
     console.log('✅ 진료 완료 요청:', requestId);
     try {
@@ -100,23 +89,50 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
 
   return (
     <div className="flex gap-4">
-      {/* 좌측: 환자 정보 + 진료 기록 */}
+      {/* ⬅️ 좌측: 환자 정보 + 과거 진료 */}
       <div className="w-3/5 space-y-6">
-        {patientInfo ? (
-          <table className="table-auto w-full">
-            <tbody>
-              <tr><th>이름</th><td>{patientInfo.name}</td></tr>
-              <tr><th>생년월일</th><td>{patientInfo.birth_date}</td></tr>
-              <tr><th>연락처</th><td>{patientInfo.contact}</td></tr>
-            </tbody>
-          </table>
-        ) : (
-          <div>로딩 중…</div>
-        )}
-        <PastDiagnosisList records={diagnosisRecords} />
-      </div>
+        {/* ✅ 환자 정보 카드 */}
+        <div className="bg-white rounded shadow p-4">
+          {patientInfo ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div className="flex">
+                <span className="font-semibold w-24">이름</span>
+                <span>{patientInfo.name}</span>
+              </div>
+              <div className="flex">
+                <span className="font-semibold w-24">생년월일</span>
+                <span>{patientInfo.birth_date}</span>
+              </div>
+              <div className="flex">
+                <span className="font-semibold w-24">연락처</span>
+                <span>{patientInfo.contact}</span>
+              </div>
+              <div className="flex">
+                <span className="font-semibold w-24">진료과</span>
+                <span>{patientInfo.department}</span>
+              </div>
+              <div className="flex col-span-2">
+                <span className="font-semibold w-24">증상 부위</span>
+                <span>{(patientInfo.symptom_part || []).join(', ')}</span>
+              </div>
+              <div className="flex col-span-2">
+                <span className="font-semibold w-24">증상 유형</span>
+                <span>{(patientInfo.symptom_type || []).join(', ')}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">환자 정보를 불러오는 중입니다...</div>
+          )}
+        </div>
 
-      {/* 우측: 영상 통화 화면 */}
+        {/* ✅ 과거 진료 기록 조회 + 렌더링 */}
+        {patientInfo?.patient_id && (
+          <PastDiagnosisSection patientId={patientInfo.patient_id} />
+        )}
+      </div>
+      
+
+      {/* ➡️ 우측: 영상 통화 및 제어 */}
       <div className="w-2/5 bg-white p-4 rounded shadow flex flex-col justify-between">
         {patientInfo?.patient_id && (
           <VideoCallRoom
@@ -126,14 +142,25 @@ export default function DoctorConsultTab({ doctorId, requestId, roomId }: Props)
             onCallReady={handleCallReady}
           />
         )}
+
+        {/* ✅ 영상 통화 제어 버튼 */}
         <div className="mt-4 flex justify-center space-x-4">
-          <button onClick={handleStartCall} className="bg-green-600 text-white px-4 py-2 rounded">
+          <button
+            onClick={handleStartCall}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
             영상 진료 시작
           </button>
-          <button onClick={handleStopCall} className="bg-red-500 text-white px-4 py-2 rounded">
+          <button
+            onClick={handleStopCall}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
             영상 진료 종료
           </button>
-          <button onClick={handleComplete} className="bg-gray-700 text-white px-4 py-2 rounded">
+          <button
+            onClick={handleComplete}
+            className="bg-gray-700 text-white px-4 py-2 rounded"
+          >
             진료 종료
           </button>
         </div>

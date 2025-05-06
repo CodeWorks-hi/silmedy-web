@@ -78,11 +78,11 @@ export const createDoctor = async (
  * PATCH /doctors/{license_number}
  */
 export const updateDoctor = async (
-  licenseNumber: string,
+  license_number: string,
   payload: Record<string, any>  // { password, bio, hospital_id, availability, contact, department, profile_url, email }
 ): Promise<any> => {
   const response = await api.patch(
-    `/doctors/${licenseNumber}`,
+    `/doctors/${license_number}`,
     payload
   );
   return response.data;

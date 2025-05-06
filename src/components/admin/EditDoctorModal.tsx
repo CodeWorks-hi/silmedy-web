@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Doctor } from '@/features/hooks/useDoctors';
-import axios from 'axios';
+import { Doctor, useDoctors } from '@/features/hooks/useDoctors';
 
 interface EditDoctorModalProps {
   doctor: Doctor;
@@ -10,7 +9,14 @@ interface EditDoctorModalProps {
   onUpdated: () => void;
 }
 
-export default function EditDoctorModal({ doctor, onClose, onUpdated }: EditDoctorModalProps) {
+export default function EditDoctorModal({
+  doctor,
+  onClose,
+  onUpdated,
+}: EditDoctorModalProps) {
+  // ★ useDoctors 훅에서 updateDoctor 가져오기
+  const { updateDoctor } = useDoctors();
+
   const [formData, setFormData] = useState({
     contact: doctor.contact || '',
     email: doctor.email || '',
@@ -19,60 +25,48 @@ export default function EditDoctorModal({ doctor, onClose, onUpdated }: EditDoct
     bio: doctor.bio?.join('\n') || '',
     availability: doctor.availability || {},
   });
-
   const [updating, setUpdating] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAvailabilityChange = (day: string, value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      availability: {
-        ...prev.availability,
-        [day]: value,
-      },
+      availability: { ...prev.availability, [day]: value },
     }));
   };
 
   const handleSubmit = async () => {
     setUpdating(true);
+
+    // PATCH 페이로드로 보낼 데이터
+    const payload = {
+      contact: formData.contact,
+      email: formData.email,
+      department: formData.department,
+      password: formData.password,
+      bio: formData.bio
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line),
+      availability: formData.availability,
+    };
+
     try {
-      const payload = {
-        contact: formData.contact,
-        email: formData.email,
-        department: formData.department,
-        password: formData.password,
-        bio: formData.bio.split('\n').filter((line) => line.trim() !== ''),
-        availability: formData.availability,
-      };
-  
-      const res = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/update/doctor/${doctor.license_number}`,
-        payload
-      );
-  
-      if (res.status === 200) {
-        alert('수정 완료');
-        onUpdated();
-        onClose();
-        return; // ❗ 여기서 완전 종료
-      } else {
-        throw new Error('응답 실패');
-      }
-    } catch (error: any) {
-      console.error('업데이트 에러:', error);
-  
-      // ❗ 정말 axios 에러만 실패 처리
-      if (error.response || error.request) {
-        alert('수정 실패');
-      }
-      // JS에서 작은 에러 (ex. 모달 닫다가 에러) 무시
+      // ★ 훅의 updateDoctor 호출 (내부에서 API 패치 + 상태 갱신)
+      await updateDoctor(doctor.license_number, payload);
+
+      alert('수정 완료');
+      onUpdated(); // 필요하다면 상위 목록을 강제로 리패치
+      onClose();
+    } catch (err) {
+      console.error('의사 수정 에러', err);
+      alert('수정 실패');
     } finally {
       setUpdating(false);
     }
@@ -190,13 +184,13 @@ export default function EditDoctorModal({ doctor, onClose, onUpdated }: EditDoct
           </div>
 
           {/* 진료 가능 시간 */}
-          {['월', '화', '수', '목', '금'].map((day) => (
+          {['월', '화', '수', '목', '금'].map(day => (
             <div key={day} className="flex flex-col">
               <label className="text-gray-700 mb-1">{day}</label>
               <input
                 type="text"
                 value={formData.availability?.[day] || ''}
-                onChange={(e) => handleAvailabilityChange(day, e.target.value)}
+                onChange={e => handleAvailabilityChange(day, e.target.value)}
                 className="bg-white border px-4 py-2 rounded-md"
                 placeholder="예: 09:00-16:00"
               />
