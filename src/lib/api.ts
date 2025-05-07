@@ -170,8 +170,13 @@ export const endCall = async (
  * POST /text
  */
 export const saveCallText = async (
-  payload: Record<string, any> // { room_id, messages }
+  callId: string,
+  text: string
 ): Promise<any> => {
+  const payload = {
+    call_id: callId,
+    text,
+  };
   const response = await api.post('/text', payload);
   return response.data;
 };
