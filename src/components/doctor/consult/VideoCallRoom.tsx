@@ -21,26 +21,22 @@ export default function VideoCallRoom({
   const { localStream, remoteStream, startCall, stopCall } =
     useWebRTC(roomId);
 
-  // 콜 제어 함수는 mount 시 한 번만 보내기
+  // 콜 제어 함수는 mount 시 한 번만 전달
   useEffect(() => {
-    console.log('📞 [UI] VideoCallRoom mount됨. 콜 제어 함수 전달.');
     onCallReady?.({ startCall, stopCall });
-  }, []);
+  }, [onCallReady, startCall, stopCall]);
 
-  // 로컬 스트림
+  // 로컬 스트림 바인딩
   useEffect(() => {
     if (localRef.current && localStream) {
-      console.log('🎬 [UI] localStream 연결됨:', localStream);
       localRef.current.srcObject = localStream;
     }
   }, [localStream]);
 
-  // 원격 스트림: 스트림 참조가 생기면 바로 바인딩
+  // 원격 스트림 바인딩
   useEffect(() => {
     if (remoteRef.current && remoteStream) {
-      console.log('🔍 [UI] remoteStream videoTracks:', remoteStream.getVideoTracks());
       remoteRef.current.srcObject = remoteStream;
-      console.log('📺 [UI] remote video srcObject 바인딩됨:', remoteStream);
     }
   }, [remoteStream]);
 

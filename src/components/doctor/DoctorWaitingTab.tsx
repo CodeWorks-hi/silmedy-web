@@ -83,9 +83,7 @@ export default function DoctorWaitingTab({
             key={page}
             onClick={() => setCurrentPage(page)}
             className={`px-3 py-1 rounded ${
-              currentPage === page ? 'bg-cyan-500 text-white' : 'bg-gray-200'
-            }`}
-          >
+              currentPage === page ? 'bg-cyan-500 text-white' : 'bg-gray-200' }`}>
             {page}
           </button>
         ))}

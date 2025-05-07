@@ -245,13 +245,25 @@ export const getAllDiagnosis = async (): Promise<any[]> => {
   return response.data.diagnosis_records;
 };
 
-/**
- * 진단 기록 생성
- * POST /diagnosis
- */
-export const createDiagnosis = async (
-  payload: Record<string, any> // { patient_id, findings }
-): Promise<any> => {
+/** 진단 기록 등록에 사용할 페이로드 타입 정의 */
+export interface DiagnosisPayload {
+  doctor_id:      string | number; // 진단한 의사
+  patient_id:     string | number; // 진단받은 환자
+  disease_code:   string;          // 해당 소견의 질병 분류 코드
+  diagnosis_text: string;          // 세부 소견
+  request_id?:    number;          // care-request ID
+  summary_text?:  string;          // 요약 텍스트
+  symptoms?:      string[];        // 증상 목록
+  prescription?:  any[];           // 처방 리스트
+}
+
+ /**  진단 기록 등록 POST /diagnosis */
+ export const createDiagnosis = async (
+  payload: DiagnosisPayload
+): Promise<{
+  message: string;
+  diagnosis_id: number;
+}> => {
   const response = await api.post('/diagnosis', payload);
   return response.data;
 };

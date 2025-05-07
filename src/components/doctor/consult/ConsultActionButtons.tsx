@@ -1,68 +1,73 @@
 'use client';
 
-import { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 
+/** ConsultActionButtons 컴포넌트에 전달할 props 타입 정의 */
 interface ConsultActionButtonsProps {
-  patientId: string | number;
+  patientId:           string | number;  /** 진료 대상 환자 ID (문자열 또는 숫자) */
+  onStartVideo():      void;             /** “영상 진료 시작” 클릭 시 호출 */
+  onEndVideo():        void;             /** “영상 진료 종료” 클릭 시 호출 */
+  onSendPrescription(): void;            /** “처방전 전송” 클릭 시 호출 */
+  onEndConsult():      void;             /** “진료 종료” 클릭 시 호출 */
 }
 
-export default function ConsultActionButtons({ patientId }: ConsultActionButtonsProps) {
-  const [videoSessionStarted, setVideoSessionStarted] = useState(false);
+/**
+ * 진료 액션 버튼 모음 컴포넌트
+ * - 영상 진료 시작/종료, 처방전 전송, 진료 종료 기능을 제공합니다.
+ * - 내부 state(videoSessionStarted)로 영상 세션 버튼 활성/비활성토글
+ */
+export default function ConsultActionButtons({
+  patientId,
+  onStartVideo,
+  onEndVideo,
+  onSendPrescription,
+  onEndConsult,
+}: ConsultActionButtonsProps) {
+  const [videoSessionStarted, setVideoSessionStarted] = useState(false); // 영상 세션 중 여부
 
-  const handleStartVideo = () => {
+  // ▶ “영상 진료 시작” 클릭
+  const handleStart = () => {
     setVideoSessionStarted(true);
-    alert('영상 진료를 시작합니다.');
+    onStartVideo();
   };
 
-  const handleEndVideo = () => {
+  // ▶ “영상 진료 종료” 클릭
+  const handleEnd = () => {
     setVideoSessionStarted(false);
-    alert('영상 진료를 종료합니다.');
-  };
-
-  const handleSendPrescription = () => {
-    if (confirm('처방전을 작성하고 전송하시겠습니까?')) {
-      alert('처방전 작성/전송 기능은 추후 연결됩니다.');
-    }
-  };
-
-  const handleEndConsult = async () => {
-    if (confirm('진료를 종료하고 완료 처리하시겠습니까?')) {
-      try {
-        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/care-requests/solve/${patientId}`);
-        alert('진료가 종료되었습니다.');
-        window.location.reload();
-      } catch (error) {
-        console.error('진료 종료 실패:', error);
-        alert('진료 종료 중 오류가 발생했습니다.');
-      }
-    }
+    onEndVideo();
   };
 
   return (
     <div className="flex flex-wrap gap-4 justify-center mt-4">
+      {/* 영상 진료 시작 버튼 (한 번만) */}
       <button
-        onClick={handleStartVideo}
+        onClick={handleStart}
         className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600"
         disabled={videoSessionStarted}
       >
         영상 진료 시작
       </button>
+
+      {/* 영상 진료 종료 버튼 (시작 후 활성화) */}
       <button
-        onClick={handleEndVideo}
+        onClick={handleEnd}
         className="px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600"
         disabled={!videoSessionStarted}
       >
         영상 진료 종료
       </button>
+
+      {/* 처방전 전송 버튼 */}
       <button
-        onClick={handleSendPrescription}
+        onClick={onSendPrescription}
         className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
-        처방전 작성 및 전송
+        처방전 전송
       </button>
+
+      {/* 진료 종료 버튼 */}
       <button
-        onClick={handleEndConsult}
+        onClick={onEndConsult}
         className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
       >
         진료 종료
