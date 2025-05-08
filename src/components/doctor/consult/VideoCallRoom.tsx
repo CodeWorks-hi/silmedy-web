@@ -48,7 +48,7 @@ export default function VideoCallRoom({
         playsInline
         muted={false}
         controls
-        className="w-full h-[700px] object-cover"
+        className="w-full h-[800px] object-cover"
       />
       <video
         ref={localRef}

@@ -10,7 +10,6 @@ interface Props {
   patientId: string | number;
   requestId?: number;
   diseases: Disease[];
-  prescriptions: Prescription[];
 }
 
 export default function DiagnosisFormSection({
@@ -18,7 +17,6 @@ export default function DiagnosisFormSection({
   patientId,
   requestId,
   diseases,
-  prescriptions,
 }: Props) {
   // ——————————————————————————————
   // 1) Form state
@@ -46,19 +44,12 @@ export default function DiagnosisFormSection({
     const payload = {
       doctor_id: doctorId,
       patient_id: patientId,
-      disease_code: diseaseCode,
+      disease_code: [diseaseCode],
       diagnosis_text: diagnosisText,
       request_id: requestId,
       summary_text: summaryText,
       notes,
       symptoms,
-      prescription: prescriptions.map(p => ({
-        disease_id: p.disease,
-        drug_id: p.drug.split(' ')[0], // 코드만 추출
-        days: p.days,
-        amount: p.amount,
-        method: p.method,
-      })),
     };
 
     try {
@@ -148,21 +139,6 @@ export default function DiagnosisFormSection({
           ))}
         </div>
       </div>
-
-      {/* 6. 처방전 리스트 (읽기 전용) */}
-      {prescriptions.length > 0 && (
-        <div>
-          <span className="block text-sm mb-1">처방전 내역</span>
-          <ul className="list-disc pl-5 space-y-1">
-            {prescriptions.map((p, i) => (
-              <li key={i}>
-                {p.drug} / 일일 {p.days}회 / 1회 {p.amount} / {p.method}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {/* 7. 제출 버튼 */}
       <div className="text-center pt-4">
         <button

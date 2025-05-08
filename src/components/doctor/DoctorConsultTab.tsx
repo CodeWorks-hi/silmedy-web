@@ -147,18 +147,11 @@ export default function DoctorConsultTab({
         const payload = {
           doctor_id: doctorId,                       // 의사 ID
           patient_id: patientInfo.patient_id,        // 환자 ID
-          disease_code: selectedDisease,             // 선택된 병명 코드
+          disease_code: [selectedDisease],             // 선택된 병명 코드
           diagnosis_text: consultMemo,               // 의사 소견 텍스트
           request_id: requestId,                     // 케어 요청 ID
           summary_text: '',                          // (필요시 요약)
           symptoms: patientInfo.symptom_part || [],  // 예시로 증상 부위
-          prescription: prescriptions.map(p => ({     // 처방 데이터
-            disease_id: p.disease,
-            drug_id:    p.drug.split(' ')[0],
-            days:       p.days,
-            amount:     p.amount,
-            method:     p.method,
-          })),
         };
         const { diagnosis_id } = await createDiagnosis(payload);
         alert(`진단서가 저장되었습니다. (ID: ${diagnosis_id})`);

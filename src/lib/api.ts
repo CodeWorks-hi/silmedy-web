@@ -249,12 +249,11 @@ export const getAllDiagnosis = async (): Promise<any[]> => {
 export interface DiagnosisPayload {
   doctor_id:      string | number; // 진단한 의사
   patient_id:     string | number; // 진단받은 환자
-  disease_code:   string;          // 해당 소견의 질병 분류 코드
+  disease_code:   string[];          // 해당 소견의 질병 분류 코드
   diagnosis_text: string;          // 세부 소견
   request_id?:    number;          // care-request ID
   summary_text?:  string;          // 요약 텍스트
   symptoms?:      string[];        // 증상 목록
-  prescription?:  any[];           // 처방 리스트
 }
 
  /**  진단 기록 등록 POST /diagnosis */
