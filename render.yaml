@@ -1,10 +1,13 @@
-# render.yaml (프로젝트 루트에 위치)
 services:
   - type: web
     name: silmedy-web
     env: node
-    plan: free           # 무료 플랜
+    plan: free
     buildCommand: "npm install && npm run build"
-    startCommand: "npm run start"
-    # envVars 블록을 비워두거나 완전히 제거합니다.
-    # 대신 Render 대시보드에서 직접 key/value 쌍을 설정하세요.
+    startCommand: "npm run start"    # ← 반드시 next start 를 호출하게 설정
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService: true             # Render 대시보드에서 설정한 ENV 사용
+      - key: NEXT_PUBLIC_FIREBASE_API_KEY
+        fromService: true
+      # … 이하 모든 NEXT_PUBLIC_* 변수를 동일하게 fromService: true 로 나열 …
