@@ -1,25 +1,10 @@
+# render.yaml (프로젝트 루트에 위치)
 services:
   - type: web
     name: silmedy-web
     env: node
-    plan: free
+    plan: free           # 무료 플랜
     buildCommand: "npm install && npm run build"
     startCommand: "npm run start"
-    envVars:
-      # API 서버
-      - key: NEXT_PUBLIC_API_URL
-
-      # Firebase 설정
-      - key: NEXT_PUBLIC_FIREBASE_API_KEY
-      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-      - key: NEXT_PUBLIC_FIREBASE_APP_ID
-      - key: NEXT_PUBLIC_FIREBASE_DATABASE_URL
-
-      # S3 업로드
-      - key: NEXT_PUBLIC_S3_ACCESS_KEY
-      - key: NEXT_PUBLIC_S3_SECRET_KEY
-      - key: NEXT_PUBLIC_S3_REGION
-      - key: NEXT_PUBLIC_S3_BUCKET
+    # envVars 블록을 비워두거나 완전히 제거합니다.
+    # 대신 Render 대시보드에서 직접 key/value 쌍을 설정하세요.
