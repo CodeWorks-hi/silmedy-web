@@ -22,7 +22,6 @@ export default function EditDoctorModal({
     email: doctor.email || '',
     department: doctor.department || '',
     password: doctor.password || '',
-    bio: doctor.bio?.join('\n') || '',
     availability: doctor.availability || {},
   });
   const [updating, setUpdating] = useState(false);
@@ -50,10 +49,6 @@ export default function EditDoctorModal({
       email: formData.email,
       department: formData.department,
       password: formData.password,
-      bio: formData.bio
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line),
       availability: formData.availability,
     };
 
@@ -168,18 +163,6 @@ export default function EditDoctorModal({
               value={formData.password}
               onChange={handleInputChange}
               className="bg-white border px-4 py-2 rounded-md"
-            />
-          </div>
-
-          {/* 학력 (Bio) */}
-          <div className="flex flex-col col-span-2">
-            <label className="text-gray-700 mb-1">학력 (Bio)</label>
-            <textarea
-              name="bio"
-              rows={3}
-              value={formData.bio}
-              onChange={handleInputChange}
-              className="bg-white border px-4 py-2 rounded-md resize-none"
             />
           </div>
 

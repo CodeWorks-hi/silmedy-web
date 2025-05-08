@@ -15,7 +15,6 @@ export interface Doctor {
   email: string;
   department: string;
   contact: string;
-  bio?: string[];
   availability?: Record<string, string>;
   created_at?: string;
   password?: string;

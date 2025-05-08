@@ -79,7 +79,7 @@ export const createDoctor = async (
  */
 export const updateDoctor = async (
   license_number: string,
-  payload: Record<string, any>  // { password, bio, hospital_id, availability, contact, department, profile_url, email }
+  payload: Record<string, any>  // { password, hospital_id, availability, contact, department, profile_url, email }
 ): Promise<any> => {
   const response = await api.patch(
     `/doctors/${license_number}`,
