@@ -279,3 +279,16 @@ export const getPatientDiagnosis = async (
   );
   return response.data.diagnosis_records;
 };
+
+
+export interface SavePrescriptionURLPayload {
+  diagnosis_id: number;
+  prescription_url: string;
+}
+
+export const savePrescriptionURL = async (
+  payload: SavePrescriptionURLPayload
+): Promise<{ message: string }> => {
+  const res = await api.post('/prescription/url', payload);
+  return res.data;
+};

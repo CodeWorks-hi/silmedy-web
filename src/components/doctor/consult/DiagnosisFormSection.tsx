@@ -1,9 +1,9 @@
 // components/doctor/consult/DiagnosisFormSection.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createDiagnosis } from '@/lib/api';
-import type { Disease, Drug, Prescription } from '@/types/consult';
+import type { Disease } from '@/types/consult';
 
 interface Props {
   doctorId: string | number;
@@ -26,6 +26,7 @@ export default function DiagnosisFormSection({
   const [summaryText, setSummaryText]   = useState<string>(''); // 요약 텍스트
   const [notes, setNotes]               = useState<string>(''); // 내부 메모
   const [symptoms, setSymptoms]         = useState<string[]>([]); // 예: ['불편감','열']
+  
 
   // ——————————————————————————————
   // 2) 증상 체크박스 목록 (질병별 혹은 고정)

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: silmedy-web
+    env: node
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start"
+    envVars:
+      # API 서버
+      - key: NEXT_PUBLIC_API_URL
+
+      # Firebase 설정
+      - key: NEXT_PUBLIC_FIREBASE_API_KEY
+      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+      - key: NEXT_PUBLIC_FIREBASE_APP_ID
+      - key: NEXT_PUBLIC_FIREBASE_DATABASE_URL
+
+      # S3 업로드
+      - key: NEXT_PUBLIC_S3_ACCESS_KEY
+      - key: NEXT_PUBLIC_S3_SECRET_KEY
+      - key: NEXT_PUBLIC_S3_REGION
+      - key: NEXT_PUBLIC_S3_BUCKET

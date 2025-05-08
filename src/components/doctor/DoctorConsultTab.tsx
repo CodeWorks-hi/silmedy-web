@@ -30,6 +30,13 @@ import PatientInfoSection      from '@/components/doctor/consult/PatientInfoSect
 import ConsultMemoSection      from '@/components/doctor/consult/ConsultMemoSection'      // 의사소견 메모 입력
 import PrescriptionFormSection from '@/components/doctor/consult/PrescriptionFormSection' // 처방전 등록 폼
 import PrescriptionListSection from '@/components/doctor/consult/PrescriptionListSection' // 등록된 처방전 리스트
+import { usePrescriptions } from '@/features/hooks/usePrescriptions'
+
+import html2canvas from 'html2canvas';                     // ← 1) html2canvas 가져오기
+import { uploadToS3 } from '@/lib/upload-s3';               // ← 2) S3 업로드 헬퍼
+import PrescriptionModal from '@/components/doctor/consult/PrescriptionModal';       // ← 3) Modal 컴포넌트
+import PrescriptionPreview from '@/components/doctor/consult/PrescriptionPreview';   // ← 4) 미리보기 컴포넌트
+
 
 export default function DoctorConsultTab({
   doctorId,                     // 🔑 의사 사용자 ID
@@ -47,7 +54,14 @@ export default function DoctorConsultTab({
   const [selectedDisease, setSelectedDisease] = useState<string>('')       // 선택된 질병 코드
   const [selectedDrug, setSelectedDrug]       = useState<string>('')       // 선택된 의약품 (코드+명)
   const [days, setDays]                       = useState<number>(1)         // 투약 일수
-  const [prescriptions, setPrescriptions]     = useState<Prescription[]>([])// 화면 내 처방전 리스트
+  const { prescriptions, addPrescription, removePrescription, clearPrescriptions } = usePrescriptions(drugs)
+  const [savedDiagnosisId, setSavedDiagnosisId] = useState<number | null>(null);
+  const [callStarted, setCallStarted] = useState(false);
+  const [callEnded, setCallEnded]     = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);   // ← 모달 열림/닫힘 상태
+  const [doctorName, setDoctorName] = useState<string>(''); 
+
+
 
   // ──────────────────────────────────────────────────────────
   // 2) WebRTC 준비 완료 시 start/stop 함수 전달
@@ -89,37 +103,89 @@ export default function DoctorConsultTab({
   // ──────────────────────────────────────────────────────────
   // 6) 처방전 개별 등록 (폼 → 리스트에 추가)
   // ──────────────────────────────────────────────────────────
-  const handleRegisterPrescription = () => {
-    if (!selectedDisease || !selectedDrug || days < 1) return              // 필수 입력 검증
-    const found = drugs.find(d => `${d.atc_code}` === selectedDrug.split(' ')[0]) // selectedDrug 앞부분(atc_code) 으로 조회
-    const amount = found?.medication_amount ?? 1                          // 1회 투여량
-    const method = found?.medication_method ?? ''                         // 용법·용량
-    setPrescriptions(ps => [...ps, { disease: selectedDisease, drug: selectedDrug, days, amount, method }]) // 리스트에 추가
-    setSelectedDisease(''); setSelectedDrug(''); setDays(1)               // 입력 초기화
-  }
+    const handleRegisterPrescription = () => {
+        if (!selectedDisease || !selectedDrug || days < 1) return
+        addPrescription(selectedDisease, selectedDrug, days)
+        setSelectedDisease(''); setSelectedDrug(''); setDays(1)
+      }
 
   // ──────────────────────────────────────────────────────────
   // 7) 등록된 처방전 전체 전송
   // ──────────────────────────────────────────────────────────
-  const handleSendAllPrescriptions = async () => {
-    if (prescriptions.length === 0 || !patientInfo) return               // 리스트 비어있거나 환자정보 없으면 종료
-    try {
-      await registerPrescription({                                        // 처방전 등록 API 호출
-        diagnosis_id:    patientInfo.latestDiagnosisId,                   // • 진단 ID
-        doctor_id:       doctorId,                                        // • 의사 ID
-        medication_days: prescriptions.map(p => p.days),                  // • 투약 일수 배열
-        medication_list: prescriptions.map(p => ({                         // • 처방 리스트
-          disease_id: p.disease,                                          //   – 질병 코드
-          drug_id:    p.drug,                                             //   – 약품 코드
-        })),
-      })
-      alert('처방전이 전송되었습니다.')                                    // 성공 알림
-      setPrescriptions([])                                                // 리스트 초기화
-    } catch (err) {
-      console.error('처방전 전송 실패', err)                             // 에러 로그
-      alert('처방전 전송에 실패했습니다.')                               // 실패 알림
-    }
+  const handleSendAllPrescriptions = () => {
+  // 처방전 리스트가 비어있거나 진단서가 아직 저장되지 않았다면 아무 동작도 하지 않습니다.
+  if (prescriptions.length === 0 || savedDiagnosisId === null) return;
+
+  // 모달을 열어서 사용자에게 “예/아니오”를 묻습니다.
+  setIsModalOpen(true);
+};
+
+// ▶ 모달에서 “예” 클릭 시 실제 전송 로직
+const handleConfirmSend = async () => {
+  // 1) 모달 닫기
+  setIsModalOpen(false);
+
+  // 2) 화면 내 미리보기 영역 캡처
+  const el = document.getElementById('prescription-preview')!;
+  const canvas = await html2canvas(el);
+  const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+  if (!blob) {
+    console.error('이미지 생성 실패');
+    return;
   }
+
+  try {
+    // 3) S3에 업로드 (키: prescriptions/{진단서ID}.png)
+    const key = `prescriptions/${savedDiagnosisId}.png`;
+    const url = await uploadToS3(blob, key);
+
+    // 4) 업로드된 URL 포함해 처방전 등록 API 호출
+    await registerPrescription({
+      diagnosis_id:    savedDiagnosisId,
+      doctor_id:       doctorId,
+      patient_id:      patientInfo!.patient_id,
+      medication_days: prescriptions.map(p => p.days),
+      medication_list: prescriptions.map(p => ({
+        disease_id: p.disease,
+        drug_id:    p.drug.split(' ')[0],
+      })),
+      prescription_url: url,  // ← 새로 추가된 필드
+    });
+
+    alert('처방전을 성공적으로 저장했습니다.');
+    clearPrescriptions();
+  } catch (err) {
+    console.error('처방전 전송 실패', err);
+    alert('처방전 전송에 실패했습니다.');
+  }
+};
+    // ──────────────────────────────────────────────────────────
+    // ▶ “진단서 저장” 버튼 클릭 핸들러
+    // ──────────────────────────────────────────────────────────
+    const handleSaveDiagnosis = async () => {
+      if (!patientInfo) return;                     // 환자 정보 없으면 리턴
+      // prescriptions 배열에서 disease 코드만 모으고 중복 제거
+      const allDiseaseCodes = prescriptions.map(p => p.disease);  
+      const uniqueDiseaseCodes = Array.from(new Set(allDiseaseCodes));
+      try {
+        const payload = {
+          doctor_id: doctorId,                       // 의사 ID
+          patient_id: patientInfo.patient_id,        // 환자 ID
+          disease_code: uniqueDiseaseCodes,
+          diagnosis_text: consultMemo,               // 의사 소견 텍스트
+          request_id: requestId,                     // 케어 요청 ID
+          summary_text: '',                          // (필요시 요약)
+          symptoms: patientInfo.symptom_part || [],  // 예시로 증상 부위
+        };
+        const { diagnosis_id } = await createDiagnosis(payload);
+        setSavedDiagnosisId(diagnosis_id);           // 저장 완료 시 ID 저장
+        alert(`진단서가 저장되었습니다. (ID: ${diagnosis_id})`);
+      } catch (err) {
+        console.error('진단서 저장 실패', err);
+        alert('진단서 저장에 실패했습니다.');
+      }
+    };
+
 
   // ──────────────────────────────────────────────────────────
   // 8) 영상 통화 시작 핸들러
@@ -134,32 +200,13 @@ export default function DoctorConsultTab({
         patient_fcm_token: patientInfo.fcm_token,                         // • FCM 토큰
       })
       alert('환자에게 통화 요청을 보냈습니다.')                           // 알림
+      setCallStarted(true);
     } catch (err) {
       console.error('통화 요청 실패:', err)                             // 오류 로그
       alert('통화 요청에 실패했습니다.')                               // 실패 알림
     }
   }
 
-    // ▶ “진단서 저장” 버튼 클릭 핸들러
-    const handleSaveDiagnosis = async () => {
-      if (!patientInfo) return;                     // 환자 정보 없으면 리턴
-      try {
-        const payload = {
-          doctor_id: doctorId,                       // 의사 ID
-          patient_id: patientInfo.patient_id,        // 환자 ID
-          disease_code: [selectedDisease],             // 선택된 병명 코드
-          diagnosis_text: consultMemo,               // 의사 소견 텍스트
-          request_id: requestId,                     // 케어 요청 ID
-          summary_text: '',                          // (필요시 요약)
-          symptoms: patientInfo.symptom_part || [],  // 예시로 증상 부위
-        };
-        const { diagnosis_id } = await createDiagnosis(payload);
-        alert(`진단서가 저장되었습니다. (ID: ${diagnosis_id})`);
-      } catch (err) {
-        console.error('진단서 저장 실패', err);
-        alert('진단서 저장에 실패했습니다.');
-      }
-    };
 
   // ──────────────────────────────────────────────────────────
   // 9) 영상 통화 종료 핸들러
@@ -168,6 +215,7 @@ export default function DoctorConsultTab({
     callActions?.stopCall()                                               // WebRTC stopCall 실행
     try {
       await endCall({ room_id: roomId })                                  // 백엔드에 종료 요청
+      setCallEnded(true);
     } catch (err) {
       console.error('통화 종료 실패:', err)                             // 오류만 로깅
     }
@@ -190,43 +238,130 @@ export default function DoctorConsultTab({
   // 11) 렌더링
   // ──────────────────────────────────────────────────────────
   return (
-    <div className="flex gap-4">
-
-      {/* ───────── 좌측 섹션: 환자 • 과거진료 • 메모 • 처방폼/리스트 • 저장/전송 버튼 ───────── */}
-      <div className="w-3/5 space-y-6">
-        <PatientInfoSection patientInfo={patientInfo} />                   {/* 환자 카드 */}
-        {patientInfo?.patient_id && <PastDiagnosisSection patientId={patientInfo.patient_id} />} {/* 과거 진료 */}
-        {patientInfo?.patient_id && <ConsultMemoSection memo={consultMemo} onChange={setConsultMemo} />}{/* 메모 */}
-        {patientInfo?.patient_id && (
-          <PrescriptionFormSection
-            diseases={diseases}
-            drugs={drugs}
-            onAdd={({ disease, drug, days }) => setPrescriptions(ps => {
-              const f = drugs.find(d => d.atc_code === drug.split(' ')[0])
-              return [...ps, { disease, drug, days, amount: f?.medication_amount ?? 1, method: f?.medication_method ?? '' }]
-            })}
-          />
-        )}                                                                  {/* 처방전 폼 */}
-        {prescriptions.length > 0 && (
-          <PrescriptionListSection prescriptions={prescriptions} onRemove={idx => setPrescriptions(ps => ps.filter((_,i)=>i!==idx))}/>
-        )}                                                                  {/* 처방전 리스트 */}
-        <div className="flex justify-center space-x-4 pt-6">
-          <button onClick={handleSaveDiagnosis} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded">진단서 저장</button>{/* 진단서 저장 */}
-          <button onClick={handleSendAllPrescriptions} disabled={prescriptions.length===0} className="bg-teal-400 hover:bg-teal-500 text-white px-6 py-2 rounded disabled:opacity-50">처방전 전송</button>{/* 처방전 전송 */}
+    <>
+      <div className="flex gap-4">
+  
+        {/* ───────── 좌측 섹션: 환자 • 과거진료 • 메모 • 처방폼/리스트 • 저장/전송 버튼 ───────── */}
+        <div className="w-3/5 space-y-6">
+          {/* ① 환자 프로필 카드 */}
+          <PatientInfoSection patientInfo={patientInfo} />
+  
+          {/* ② 과거 진료 기록 */}
+          {patientInfo?.patient_id && (
+            <PastDiagnosisSection patientId={patientInfo.patient_id} />
+          )}
+  
+          {/* ③ 의사 소견 메모 */}
+          {patientInfo?.patient_id && (
+            <ConsultMemoSection memo={consultMemo} onChange={setConsultMemo} />
+          )}
+  
+          {/* ④ 처방전 등록 폼 */}
+          {patientInfo?.patient_id && (
+            <PrescriptionFormSection
+              diseases={diseases}
+              drugs={drugs}
+              onAdd={({ disease, drug, days }) =>
+                addPrescription(disease, drug, days)
+              }
+            />
+          )}
+  
+          {/* ⑤ 처방전 리스트 */}
+          {prescriptions.length > 0 && (
+            <PrescriptionListSection
+              prescriptions={prescriptions}
+              onRemove={removePrescription}
+            />
+          )}
+  
+          {/* ⑥ 저장/전송 버튼 */}
+          <div className="flex justify-center space-x-4 pt-6">
+            {/* ▶ 진단서 저장 */}
+            <button
+              onClick={handleSaveDiagnosis}
+              disabled={savedDiagnosisId !== null}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded disabled:opacity-50"
+            >
+              진단서 저장
+            </button>
+  
+            {/* ▶ 처방전 전송 (모달 오픈) */}
+            <button
+              onClick={handleSendAllPrescriptions}
+              disabled={
+                savedDiagnosisId === null || prescriptions.length === 0
+              }
+              className="bg-teal-400 hover:bg-teal-500 text-white px-6 py-2 rounded disabled:opacity-50"
+            >
+              처방전 전송
+            </button>
+          </div>
+        </div>
+  
+        {/* ───────── 우측 플로팅 섹션: 영상 통화 및 제어 버튼 ───────── */}
+        <div
+          className="bg-white p-4 rounded shadow flex flex-col justify-end"
+          style={{
+            position: "fixed",
+            top: "4rem",
+            right: "1rem",
+            width: "35%",
+            height: "90vh",
+            maxHeight: "100vh",
+            overflow: "auto",
+          }}
+        >
+          {patientInfo?.patient_id && (
+            <VideoCallRoom
+              doctorId={doctorId}
+              patientId={patientInfo.patient_id}
+              roomId={roomId}
+              onCallReady={handleCallReady}
+            />
+          )}
+  
+          <div className="mt-4 flex justify-center space-x-4">
+            {/* ▶ 영상 진료 시작 */}
+            <button
+              onClick={handleStartCall}
+              disabled={callStarted}
+              className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              영상 진료 시작
+            </button>
+  
+            {/* ▶ 영상 진료 종료 */}
+            <button
+              onClick={handleStopCall}
+              disabled={!callStarted || callEnded}
+              className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              영상 진료 종료
+            </button>
+  
+            {/* ▶ 진료 종료 */}
+            <button
+              onClick={handleComplete}
+              disabled={!callEnded}
+              className="bg-gray-700 text-white px-4 py-2 rounded disabled:opacity-50"
+            >
+              진료 종료
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* ───────── 우측 섹션: 영상 통화 및 제어 버튼 ───────── */}
-      <div className="w-2/5 bg-white p-4 rounded shadow flex flex-col justify-end">
-        {patientInfo?.patient_id && (
-          <VideoCallRoom doctorId={doctorId} patientId={patientInfo.patient_id} roomId={roomId} onCallReady={handleCallReady}/>
-        )}                                                                  {/* 영상 통화 UI */}
-        <div className="mt-4 flex justify-center space-x-4">
-          <button onClick={handleStartCall} className="bg-green-600 text-white px-4 py-2 rounded">영상 진료 시작</button>{/* 시작 */}
-          <button onClick={handleStopCall}  className="bg-red-500   text-white px-4 py-2 rounded">영상 진료 종료</button>{/* 종료 */}
-          <button onClick={handleComplete}  className="bg-gray-700  text-white px-4 py-2 rounded">진료 종료</button>{/* 진료 종료 */}
-        </div>
-      </div>
-    </div>
-  )
+  
+      {/* ───────── 처방전 확인/전송 모달 ───────── */}
+      <PrescriptionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmSend}
+        patientName={patientInfo?.name ?? ''}
+        prescriptions={prescriptions}
+        doctorName={doctorName}
+        licenseNumber={doctorId.toString()}   // doctorId 가 면허번호라고 가정
+      />
+    </>
+  );
 }

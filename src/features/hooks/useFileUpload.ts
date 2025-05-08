@@ -49,16 +49,25 @@ export function useFileUpload() {
 
       for (let i = 0; i < fileData.length; i++) {
         const item = fileData[i];
-
+        // inside uploadDoctors loop
+        const availability = {
+          월: item['월'],
+          화: item['화'],
+          수: item['수'],
+          목: item['목'],
+          금: item['금'],
+        };
         // API 함수 호출: createDoctor에 필요한 필드로 맵핑
         await createDoctor({
+          license_number: item['면허번호'],
           name: item['이름'],
           gender: item['성별'],
           email: item['이메일'],
-          department: item['직책'],
+          department: item['진료과목'],
           contact: item['연락처'],
           hospital_id: item['보건소'], // 보건소 ID를 직접 넣어야 함
           password: '123456',         // 기본 비밀번호
+          availability,
         });
 
         // 업로드 진행률 계산 및 업데이트
