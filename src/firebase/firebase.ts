@@ -22,7 +22,10 @@ const firebaseConfig = {
   appId:              process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
   databaseURL:        process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL!,
 };
-
+console.log('FIREBASE ENV', {
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+});
 // **1) 클라이언트 환경에서만 Firebase 앱 초기화**
 let app;
 if (typeof window !== 'undefined') {
