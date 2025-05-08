@@ -97,20 +97,32 @@ export default function UploadTab() {
               <tr>
                 <th className="px-4 py-2 border">이름</th>
                 <th className="px-4 py-2 border">성별</th>
+                <th className="px-4 py-2 border">면허번호</th>
                 <th className="px-4 py-2 border">이메일</th>
-                <th className="px-4 py-2 border">직책</th>
+                <th className="px-4 py-2 border">진료과목</th>
                 <th className="px-4 py-2 border">연락처</th>
                 <th className="px-4 py-2 border">보건소</th>
+                <th className="px-4 py-2 border">월</th>
+                <th className="px-4 py-2 border">화</th>
+                <th className="px-4 py-2 border">수</th>
+                <th className="px-4 py-2 border">목</th>
+                <th className="px-4 py-2 border">금</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td className="px-4 py-2 border">홍길동</td>
                 <td className="px-4 py-2 border">남</td>
+                <td className="px-4 py-2 border">123456</td>
                 <td className="px-4 py-2 border">hong@example.com</td>
                 <td className="px-4 py-2 border">내과</td>
                 <td className="px-4 py-2 border">010-1234-5678</td>
                 <td className="px-4 py-2 border">중구보건소</td>
+                <td className="px-4 py-2 border">09:00~17:00</td>
+                <td className="px-4 py-2 border">09:00~17:00</td>
+                <td className="px-4 py-2 border">09:00~17:00</td>
+                <td className="px-4 py-2 border">휴진</td>
+                <td className="px-4 py-2 border">09:00~17:00</td>
               </tr>
             </tbody>
           </table>
