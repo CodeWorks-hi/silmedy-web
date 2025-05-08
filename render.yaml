@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     buildCommand: "npm install && npm run build"
-    startCommand: "npm run start"       # next start
+    startCommand: "npm run start"
     envVars:
       - key: NEXT_PUBLIC_API_URL
         fromService: true
@@ -12,7 +12,7 @@ services:
         fromService: true
       - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
         fromService: true
-      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID     ← 포함
+      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
         fromService: true
       - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
         fromService: true
@@ -20,7 +20,7 @@ services:
         fromService: true
       - key: NEXT_PUBLIC_FIREBASE_APP_ID
         fromService: true
-      - key: NEXT_PUBLIC_FIREBASE_DATABASE_URL   ← 포함
+      - key: NEXT_PUBLIC_FIREBASE_DATABASE_URL
         fromService: true
       - key: NEXT_PUBLIC_S3_ACCESS_KEY
         fromService: true
