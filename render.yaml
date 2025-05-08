@@ -4,10 +4,29 @@ services:
     env: node
     plan: free
     buildCommand: "npm install && npm run build"
-    startCommand: "npm run start"    # ← 반드시 next start 를 호출하게 설정
+    startCommand: "npm run start"       # next start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromService: true             # Render 대시보드에서 설정한 ENV 사용
+        fromService: true
       - key: NEXT_PUBLIC_FIREBASE_API_KEY
         fromService: true
-      # … 이하 모든 NEXT_PUBLIC_* 변수를 동일하게 fromService: true 로 나열 …
+      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+        fromService: true
+      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID     ← 포함
+        fromService: true
+      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+        fromService: true
+      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+        fromService: true
+      - key: NEXT_PUBLIC_FIREBASE_APP_ID
+        fromService: true
+      - key: NEXT_PUBLIC_FIREBASE_DATABASE_URL   ← 포함
+        fromService: true
+      - key: NEXT_PUBLIC_S3_ACCESS_KEY
+        fromService: true
+      - key: NEXT_PUBLIC_S3_SECRET_KEY
+        fromService: true
+      - key: NEXT_PUBLIC_S3_REGION
+        fromService: true
+      - key: NEXT_PUBLIC_S3_BUCKET
+        fromService: true
