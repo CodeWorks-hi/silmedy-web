@@ -65,6 +65,7 @@ export default function PrescriptionFormSection({
             placeholder="코드 또는 이름 입력"
             value={selectedDrug}
             onChange={e => setSelectedDrug(e.target.value)}
+            
           />
           <datalist id="drug-list">
             <option value="">— 선택 —</option>
