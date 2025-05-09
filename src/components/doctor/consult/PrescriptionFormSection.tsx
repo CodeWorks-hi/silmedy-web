@@ -47,8 +47,8 @@ export default function PrescriptionFormSection({
           <datalist id="disease-list">
             <option value="">— 선택 —</option>
             {diseases.map(d => (
-              <option key={d.similar_id} value={d.similar_id}>
-                {d.similar_id} {d.name_ko}
+              <option key={d.disease_id} value={d.disease_id}>
+                {d.disease_id} {d.name_ko}
               </option>
             ))}
           </datalist>

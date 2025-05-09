@@ -13,7 +13,7 @@ export interface DoctorConsultTabProps {
    * 질병 목록 API로부터 받아오는 질병 항목 구조
    */
   export interface Disease {
-    similar_id: string; // 질병 고유 코드
+    disease_id: string; // 질병 고유 코드
     name_ko:    string; // 질병 한글명
   }
   
@@ -32,7 +32,7 @@ export interface DoctorConsultTabProps {
    * 화면에서 관리하는 개별 처방전 항목 구조
    */
   export interface Prescription {
-    disease: string;  // 선택된 질병 코드(similar_id)
+    disease: string;  // 선택된 질병 코드(disease_id)
     drug:    string;  // 선택된 의약품 표시 문자열(코드+명)
     days:    number;  // 복용 일수 또는 일일 복용 횟수
     amount:  number;  // 1회 투여량
