@@ -32,7 +32,6 @@ import PrescriptionFormSection from '@/components/doctor/consult/PrescriptionFor
 import PrescriptionListSection from '@/components/doctor/consult/PrescriptionListSection' // 등록된 처방전 리스트
 import { usePrescriptions } from '@/features/hooks/usePrescriptions'
 
-import html2canvas from 'html2canvas';                     // ← 1) html2canvas 가져오기
 import { uploadToS3 } from '@/lib/upload-s3';               // ← 2) S3 업로드 헬퍼
 import PrescriptionModal from '@/components/doctor/consult/PrescriptionModal';       // ← 3) Modal 컴포넌트
 import PrescriptionPreview from '@/components/doctor/consult/PrescriptionPreview';   // ← 4) 미리보기 컴포넌트
@@ -87,7 +86,10 @@ export default function DoctorConsultTab({
   // ──────────────────────────────────────────────────────────
   useEffect(() => {
     getDiseases()
-      .then(list => setDiseases(list))                                    // API로 질병 배열 저장
+      .then(list => {
+        console.log('📋 질병 목록:', list); // 여기에 구조 확인
+        setDiseases(list)
+      })                                    // API로 질병 배열 저장
       .catch(err => console.error('질병 조회 실패:', err))
   }, [])
 
@@ -124,6 +126,8 @@ export default function DoctorConsultTab({
 const handleConfirmSend = async () => {
   // 1) 모달 닫기
   setIsModalOpen(false);
+
+  const html2canvas = (await import('html2canvas')).default;
 
   // 2) 화면 내 미리보기 영역 캡처
   const el = document.getElementById('prescription-preview')!;
