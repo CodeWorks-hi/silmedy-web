@@ -88,6 +88,19 @@ export default function UploadTab() {
         </button>
       </div>
 
+      {/* 샘플 파일 다운로드 버튼 */}
+      <div className="flex justify-end mb-4">
+        <a
+          href="/doctor_upload_sample.xlsx"
+          download="doctor_upload_sample.xlsx"
+          className="inline-block bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded"
+        >
+          샘플 파일 다운로드
+        </a>
+
+      </div>
+
+
       {/* 샘플 미리보기 설명 */}
       <div>
         <h3 className="text-lg font-semibold mb-4">샘플 파일 양식</h3>
@@ -101,7 +114,6 @@ export default function UploadTab() {
                 <th className="px-4 py-2 border">이메일</th>
                 <th className="px-4 py-2 border">진료과목</th>
                 <th className="px-4 py-2 border">연락처</th>
-                <th className="px-4 py-2 border">보건소</th>
                 <th className="px-4 py-2 border">월</th>
                 <th className="px-4 py-2 border">화</th>
                 <th className="px-4 py-2 border">수</th>
@@ -111,18 +123,17 @@ export default function UploadTab() {
             </thead>
             <tbody>
               <tr>
-                <td className="px-4 py-2 border">홍길동</td>
-                <td className="px-4 py-2 border">남</td>
-                <td className="px-4 py-2 border">123456</td>
-                <td className="px-4 py-2 border">hong@example.com</td>
-                <td className="px-4 py-2 border">내과</td>
-                <td className="px-4 py-2 border">010-1234-5678</td>
-                <td className="px-4 py-2 border">중구보건소</td>
-                <td className="px-4 py-2 border">09:00~17:00</td>
-                <td className="px-4 py-2 border">09:00~17:00</td>
-                <td className="px-4 py-2 border">09:00~17:00</td>
-                <td className="px-4 py-2 border">휴진</td>
-                <td className="px-4 py-2 border">09:00~17:00</td>
+                <td className="px-4 py-2 border text-center">홍길동</td>
+                <td className="px-4 py-2 border text-center">남</td>
+                <td className="px-4 py-2 border text-center">123456</td>
+                <td className="px-4 py-2 border text-center">hong@example.com</td>
+                <td className="px-4 py-2 border text-center">내과</td>
+                <td className="px-4 py-2 border text-center">010-1234-5678</td>
+                <td className="px-4 py-2 border text-center">09:00~17:00</td>
+                <td className="px-4 py-2 border text-center">09:00~17:00</td>
+                <td className="px-4 py-2 border text-center">09:00~17:00</td>
+                <td className="px-4 py-2 border text-center">휴진</td>
+                <td className="px-4 py-2 border text-center">09:00~17:00</td>
               </tr>
             </tbody>
           </table>
