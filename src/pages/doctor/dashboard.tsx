@@ -121,6 +121,7 @@ export default function DoctorDashboard() {
          callRoomId && (
           <DoctorConsultTab
             doctorId={doctorId!}
+            doctorName={localStorage.getItem('doctor_name')!}
             requestId={selectedRequestId}
             roomId={callRoomId}
             hospitalId={Number(Cookie.get('hospital_id'))}

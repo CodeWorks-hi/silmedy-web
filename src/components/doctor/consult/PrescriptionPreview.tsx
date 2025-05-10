@@ -13,7 +13,7 @@ interface Props {
     hospitalAddress?: string;
     hospitalContact?: string;
     birthDate?: string;
-
+    prescriptionId?: number;
 }
 
 // 날짜 포맷팅 헬퍼
@@ -33,6 +33,7 @@ export default function PrescriptionPreview({
     hospitalAddress,
     hospitalContact,
     birthDate,
+    prescriptionId,
 }: Props) {
     const today = new Date();
     const formattedBirth = birthDate
@@ -51,46 +52,56 @@ export default function PrescriptionPreview({
             </h3>
 
             {/* 병원·의사·환자 정보 테이블 */}
-            <table className="w-full mb-6 text-sm">
+            <table className="border w-full text-sm">
             <colgroup>
                 <col style={{ width: '20%' }} />
                 <col style={{ width: '50%' }} />
-                <col style={{ width: '30%' }} />
+
 
             </colgroup>
-                <tr className="bg-gray-100">
-                    <th className="border px-3 py-2 text-right font-medium">교부번호</th>
-                    <th className="border px-3 py-2 text-center font-medium">{formatDate(today)}</th>
-                    <th className="px-3 py-2 text-right font-medium"></th>
-                    <th className="px-3 py-2 text-right font-medium"></th>
+                <tr>
+                    <th className="bg-cyan-200 border px-3 py-2 text-center font-medium">교부번호</th>
+                    <th className="border px-3 py-2 text-center font-medium">{formatDate(today)} 제 {prescriptionId ?? '-'} 호</th>
+
                 </tr>
             </table>
             <table className="w-full text-sm">
             <colgroup>
-                <col style={{ width: '10%' }} />
-                <col style={{ width: '20%' }} />
                 <col style={{ width: '50%' }} />
-                <col style={{ width: '20%' }} />
+                <col style={{ width: '50%' }} />
             </colgroup>
                 <tr className="bg-gray-100">
-                    <th className="px-2 py-1 text-center w-1/7">환</th>
-                    <th className="border px-3 py-2 text-center font-medium">성명</th>
-                    <th className="px-3 py-2 text-right font-medium">{patientName}</th>
-                    <th className="px-3 py-2 text-right font-medium"></th>
+                    <th className="border px-3 py-2 text-center font-medium">환&nbsp;자</th>
+                    <th className="border px-3 py-2 text-center font-medium">의료기관</th>
+                </tr>
+            </table>
+            <table className="w-full text-sm">
+            <colgroup>
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '30%' }} />
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '30%' }} />
+            </colgroup>
+                <tr>
+                    <td className="bg-gray-100 border px-3 py-2 text-center font-medium">성명</td>
+                    <td className="border px-3 py-2 text-center font-medium">{patientName}</td>
+                    <td className="bg-gray-100 border px-3 py-2 text-center font-medium">기관명</td>
+                    <td className="border px-3 py-2 text-center font-medium">{hospitalName}</td>
                 </tr>
             </table>
             <table className="w-full text-sm">
                 <colgroup>
-                    <col style={{ width: '10%' }} />
                     <col style={{ width: '20%' }} />
-                    <col style={{ width: '50%' }} />
+                    <col style={{ width: '30%' }} />
                     <col style={{ width: '20%' }} />
+                    <col style={{ width: '30%' }} />
                 </colgroup>
-                <tr className="bg-gray-100">
-                    <th className="px-2 py-1 text-center w-1/7">자</th>
-                    <th className="border px-3 py-2 text-center font-medium">성년월일</th>
-                    <th className="px-3 py-2 text-right font-medium">{formattedBirth}</th>
-                    <th className="px-3 py-2 text-right font-medium"></th>
+                <tr>
+                   
+                    <td className="bg-gray-100 border px-3 py-2 text-center font-medium">생년월일</td>
+                    <td className="border px-3 py-2 text-center font-medium">{formattedBirth}</td>
+                    <td className="bg-gray-100 border px-3 py-2 text-center font-medium">연락처</td>
+                    <td className="border px-3 py-2 text-center font-medium">{hospitalContact}</td>
                 </tr>
             </table>
             <table className="w-full mb-6 text-sm">
@@ -99,11 +110,11 @@ export default function PrescriptionPreview({
                     <tr className="bg-gray-50">
 
                         <th className="px-3 py-2 text-right font-medium">보건소</th>
-                        <td className="px-3 py-2">{hospitalName}</td>
+                        <td className="px-3 py-2"></td>
                         <th className="px-3 py-2 text-right font-medium">주소</th>
                         <td className="px-3 py-2">{hospitalAddress}</td>
                         <th className="px-3 py-2 text-right font-medium">연락처</th>
-                        <td className="px-3 py-2">{hospitalContact}</td>
+                        <td className="px-3 py-2"></td>
                     </tr>
                     <tr>
                         <th className="px-3 py-2 text-right font-medium">의사명</th>

@@ -7,6 +7,7 @@ export interface DoctorConsultTabProps {
     doctorId: string;   // 의사 사용자 ID
     requestId: number;  // 진료 요청(케어 요청) ID
     roomId: string;     // WebRTC 영상 통화용 룸 ID
+    doctorName: string;
     hospitalId: number;
   }
   

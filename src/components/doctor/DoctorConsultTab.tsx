@@ -25,7 +25,6 @@ import {
 // ──────────────────────────────────────────────────────────
 import VideoCallRoom from '@/components/doctor/consult/VideoCallRoom'           // WebRTC 영상통화 UI
 import PastDiagnosisSection from '@/components/doctor/consult/PastDiagnosisSection'    // 과거 진료 기록 표시
-import ConsultActionButtons from '@/components/doctor/consult/ConsultActionButtons'    // 영상·처방·종료 버튼
 import PatientInfoSection from '@/components/doctor/consult/PatientInfoSection'      // 환자 정보 카드
 import ConsultMemoSection from '@/components/doctor/consult/ConsultMemoSection'      // 의사소견 메모 입력
 import PrescriptionFormSection from '@/components/doctor/consult/PrescriptionFormSection' // 처방전 등록 폼
@@ -37,13 +36,14 @@ import Cookie from 'js-cookie';
 import html2canvas from 'html2canvas';
 import { uploadToS3 } from '@/lib/upload-s3';               // ← 2) S3 업로드 헬퍼
 import PrescriptionModal from '@/components/doctor/consult/PrescriptionModal';       // ← 3) Modal 컴포넌트
-import PrescriptionPreview from '@/components/doctor/consult/PrescriptionPreview';   // ← 4) 미리보기 컴포넌트
+
 
 
 export default function DoctorConsultTab({
   doctorId,                     // 🔑 의사 사용자 ID
   requestId,                    // 🔑 케어 요청(진료 요청) ID
   roomId,                       // 🔑 WebRTC 룸 ID
+  doctorName,
   hospitalId,
 }: DoctorConsultTabProps) {
   // ──────────────────────────────────────────────────────────
@@ -54,16 +54,11 @@ export default function DoctorConsultTab({
   const [consultMemo, setConsultMemo] = useState<string>('')              // 의사소견 메모 저장
   const [diseases, setDiseases] = useState<Disease[]>([])           // 질병 목록 저장
   const [drugs, setDrugs] = useState<Drug[]>([])              // 의약품 목록 저장
-  const [selectedDisease, setSelectedDisease] = useState<string>('')       // 선택된 질병 코드
-  const [selectedDrug, setSelectedDrug] = useState<string>('')       // 선택된 의약품 (코드+명)
-  const [days, setDays] = useState<number>(1)         // 투약 일수
-
   const { prescriptions, addPrescription, removePrescription, clearPrescriptions } = usePrescriptions(drugs)
   const [savedDiagnosisId, setSavedDiagnosisId] = useState<number | null>(null);
   const [callStarted, setCallStarted] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);   // ← 모달 열림/닫힘 상태
-  const [doctorName, setDoctorName] = useState<string>('');
   const { hospitals } = useHospitals();
   const adminHospitalId = Cookie.get('hospital_id');
   const myHospital = hospitals.find(h => h.hospital_id === hospitalId);
@@ -108,21 +103,6 @@ export default function DoctorConsultTab({
       .then(list => setDrugs(list))                                       // API로 약품 배열 저장
       .catch(err => console.error('의약품 조회 실패:', err))
   }, [])
-
-  // ──────────────────────────────────────────────────────────
-  // 6) 처방전 개별 등록 (폼 → 리스트에 추가)
-  // ──────────────────────────────────────────────────────────
-  const handleRegisterPrescription = () => {
-    if (!selectedDisease || !selectedDrug || days < 1) return
-    const found = drugs.find(
-      d => `${d.atc_code} ${d.name}` === selectedDrug
-    );
-    const frequency = found?.medication_amount ?? 1;      // ← 투약 회수: medication_amount 필드 사용
-    // addPrescription 호출 시 네 번째 인자로 frequency 넘겨주기
-
-    addPrescription(selectedDisease, selectedDrug, days, frequency)
-    setSelectedDisease(''); setSelectedDrug(''); setDays(1)
-  }
 
   // ──────────────────────────────────────────────────────────
   // 7) 등록된 처방전 전체 전송

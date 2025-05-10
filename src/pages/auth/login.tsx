@@ -109,6 +109,7 @@ export default function LoginPage() {
 
       // 역할별 추가 저장 및 페이지 이동
       if (role === 'doctor') {
+        localStorage.setItem('doctor_name', doctor.name);
         localStorage.setItem('doctor_id', formData.doctorId);
         localStorage.setItem('department', formData.department);
         Cookie.set('doctor_id', formData.doctorId);
