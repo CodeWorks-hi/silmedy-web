@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { createDoctor } from '@/lib/api'; // 공통 API 함수 불러오기
+import Cookie from 'js-cookie';
 
 export function useFileUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // 선택된 파일 상태
@@ -36,13 +37,21 @@ export function useFileUpload() {
     setProgress(0);
   };
 
-  // 서버에 일괄 등록 요청
   const uploadDoctors = async () => {
-    if (fileData.length === 0) {
-      alert('업로드할 데이터가 없습니다.');
-      return;
-    }
-    if (!confirm('정말 등록하시겠습니까?')) return;
+      // 1) 업로드 데이터 유무 체크
+      if (fileData.length === 0) {
+        alert('업로드할 데이터가 없습니다.');
+        return;
+      }
+      if (!confirm('정말 등록하시겠습니까?')) return;
+  
+      // 2) 로그인 시 쿠키에 저장된 보건소 ID를 꺼내옵니다
+      const adminHospitalId = Cookie.get('hospital_id');
+      if (!adminHospitalId) {
+      alert('보건소 정보가 없습니다. 다시 로그인 해주세요.');
+        return;
+      }
+  
 
     try {
       setProgress(10); // 진입 직후 소량 진행률 표시
@@ -57,16 +66,16 @@ export function useFileUpload() {
           목: item['목'],
           금: item['금'],
         };
-        // API 함수 호출: createDoctor에 필요한 필드로 맵핑
+        // 3) API 함수 호출: 로그인된 관리자 보건소 ID(adminHospitalId)를 사용
         await createDoctor({
           license_number: item['면허번호'],
-          name: item['이름'],
-          gender: item['성별'],
-          email: item['이메일'],
-          department: item['진료과목'],
-          contact: item['연락처'],
-          hospital_id: item['보건소'], // 보건소 ID를 직접 넣어야 함
-          password: '123456',         // 기본 비밀번호
+          name:           item['이름'],
+          gender:         item['성별'],
+          email:          item['이메일'],
+          department:     item['진료과목'],
+          contact:        item['연락처'],
+          hospital_id:    adminHospitalId, // 문자열 타입
+          password:       '123456',
           availability,
         });
 
