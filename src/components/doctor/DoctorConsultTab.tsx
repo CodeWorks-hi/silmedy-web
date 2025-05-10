@@ -8,7 +8,8 @@ import {
   completeRequest,              // ✅ 진료 종료 API
   getDiseases,                  // 📋 질병 목록 조회 API
   getDrugs,                     // 💊 의약품 목록 조회 API
-  registerPrescription,         // 💾 처방전 일괄 등록 API
+  createPrescriptionMeta,       // 💊 의약품 목록 조회 API
+  updatePrescriptionUrl,
   createDiagnosis
 } from '@/lib/api';
 // ──────────────────────────────────────────────────────────
@@ -62,6 +63,8 @@ export default function DoctorConsultTab({
   const { hospitals } = useHospitals();
   const adminHospitalId = Cookie.get('hospital_id');
   const myHospital = hospitals.find(h => h.hospital_id === hospitalId);
+  const [prescriptionId, setPrescriptionId] = useState<number|null>(null);
+
 
 
 
@@ -117,43 +120,43 @@ export default function DoctorConsultTab({
 
   // ▶ 모달에서 “예” 클릭 시 실제 전송 로직
   const handleConfirmSend = async () => {
-    // 1) 모달 닫기
-    setIsModalOpen(false);
-
-    // 2) 화면 내 미리보기 영역 캡처
-    const el = document.getElementById('prescription-preview')!;
-    const canvas = await html2canvas(el);
-    const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
-    if (!blob) {
-      console.error('이미지 생성 실패');
-      return;
-    }
-
     try {
-      // 3) S3에 업로드 (키: prescriptions/{진단서ID}.png)
-      const key = `prescriptions/${savedDiagnosisId}.png`;
-      const url = await uploadToS3(blob, key);
-
-      // 4) 업로드된 URL 포함해 처방전 등록 API 호출
-      await registerPrescription({
-        diagnosis_id: savedDiagnosisId,
-        doctor_id: doctorId,
-        patient_id: patientInfo!.patient_id,
+      // 1) 화면 내 미리보기 영역 캡처 (모달은 아직 열린 상태)
+      const el = document.getElementById('prescription-preview')
+      if (!el) throw new Error('미리보기 영역을 찾을 수 없습니다.')
+      const canvas = await html2canvas(el)
+      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'))
+      if (!blob) throw new Error('이미지 생성 실패')
+  
+      // 2) 서버에 메타만 먼저 저장 → ID 발급
+      const { prescription_id } = await createPrescriptionMeta({
+        diagnosis_id:    savedDiagnosisId!,
+        doctor_id:       doctorId,
+        patient_id:      patientInfo!.patient_id,
         medication_days: prescriptions.map(p => p.days),
         medication_list: prescriptions.map(p => ({
           disease_id: p.disease,
-          drug_id: p.drug.split(' ')[0],
+          drug_id:    p.drug.split(' ')[0],
         })),
-        prescription_url: url,  // ← 새로 추가된 필드
       });
-
-      alert('처방전을 성공적으로 저장했습니다.');
-      clearPrescriptions();
+  
+      // 3) S3 업로드 (이미지)
+      const key = `prescriptions/${prescription_id}.png`
+      const url = await uploadToS3(blob, key)
+  
+      // 4) 최종 API 호출로 URL 업데이트
+      await updatePrescriptionUrl(prescription_id, url);
+  
+      // 5) 모달 닫기 & 상태 정리
+      setIsModalOpen(false)
+      alert('처방전을 성공적으로 저장했습니다.')
+      clearPrescriptions()
+  
     } catch (err) {
-      console.error('처방전 전송 실패', err);
-      alert('처방전 전송에 실패했습니다.');
+      console.error('처방전 전송 실패', err)
+      alert('처방전 전송에 실패했습니다.')
     }
-  };
+  }
   // ──────────────────────────────────────────────────────────
   // ▶ “진단서 저장” 버튼 클릭 핸들러
   // ──────────────────────────────────────────────────────────

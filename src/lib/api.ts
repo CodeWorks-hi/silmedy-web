@@ -257,6 +257,44 @@ export const registerPrescription = async (
   return response.data;
 };
 
+// ──────────────────────────────────────────────────────────
+// 1) 처방전 메타 저장 → prescription_id 발급
+export interface CreatePrescriptionMetaPayload {
+  diagnosis_id:    number;
+  doctor_id:       string;
+  patient_id:      number;
+  medication_days: number[];
+  medication_list: { disease_id: string; drug_id: string }[];
+}
+export interface CreatePrescriptionMetaResponse {
+  message:         string;
+  prescription_id: number;
+}
+export const createPrescriptionMeta = async (
+  payload: CreatePrescriptionMetaPayload
+): Promise<CreatePrescriptionMetaResponse> => {
+  const res = await api.post<CreatePrescriptionMetaResponse>(
+    '/prescriptions',
+    payload
+  );
+  return res.data;
+};
+
+// ──────────────────────────────────────────────────────────
+// 2) prescription_url 업데이트 (PATCH)
+export const updatePrescriptionUrl = async (
+  prescriptionId: number,
+  prescriptionUrl: string
+): Promise<any> => {
+  const response = await api.patch(
+    `/prescriptions/${prescriptionId}/url`,
+    { prescription_url: prescriptionUrl }
+  );
+  return response.data;
+};
+
+
+
 /**
  * 전체 진단 기록 조회
  * GET /diagnosis
