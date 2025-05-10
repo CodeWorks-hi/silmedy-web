@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Doctor, useDoctors } from '@/features/hooks/useDoctors';
 import { uploadDoctorProfile } from '@/lib/api';
+import { useHospitals }      from '@/features/hooks/useHospitals'
+
 
 interface EditDoctorModalProps {
   doctor: Doctor;
@@ -17,6 +19,13 @@ export default function EditDoctorModal({
 }: EditDoctorModalProps) {
   // ★ useDoctors 훅에서 updateDoctor 가져오기
   const { updateDoctor } = useDoctors();
+  const { hospitals } = useHospitals();
+
+  // hospital_id → name 맵 생성 (key: hospital_id)
+  const hospitalMap = hospitals.reduce<Record<number, string>>((acc, h) => {
+    acc[h.hospital_id] = h.name;
+    return acc;
+  }, {});
 
   const [formData, setFormData] = useState({
     contact: doctor.contact || '',
@@ -24,6 +33,7 @@ export default function EditDoctorModal({
     department: doctor.department || '',
     password: doctor.password || '',
     availability: doctor.availability || {},
+    profile_url: doctor.profile_url || '',
   });
   const [updating, setUpdating] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -57,6 +67,14 @@ export default function EditDoctorModal({
     try {
       // ★ 훅의 updateDoctor 호출 (내부에서 API 패치 + 상태 갱신)
       await updateDoctor(doctor.license_number, payload);
+      // 2) 파일이 선택돼 있으면 업로드
+      if (selectedFile) {
+        const { profile_url: newUrl } = await uploadDoctorProfile(
+          doctor.license_number,
+          selectedFile
+        );
+        setFormData(prev => ({ ...prev, profile_url: newUrl }));
+      }
 
       alert('수정 완료');
       onUpdated(); // 필요하다면 상위 목록을 강제로 리패치
@@ -69,26 +87,15 @@ export default function EditDoctorModal({
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   // 1) 파일 선택 시 로컬 미리보기로만 사용
+ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      // API 헬퍼 함수로 업로드 (axios 인스턴스(api) 사용)
-      const { profile_url: newUrl } = await uploadDoctorProfile(
-        doctor.license_number,
-        file
-      );
-      // 상위 리스트를 갱신
-      onUpdated();
-
-      // 모달 내 이미지 즉시 반영
-      setFormData(prev => ({ ...prev, profile_url: newUrl }));
-      alert('프로필이 업데이트되었습니다.');
-    } catch (err) {
-      console.error('프로필 업로드 실패', err);
-      alert('프로필 업로드에 실패했습니다.');
-    }
+    setSelectedFile(file);
+    // 로컬 URL 생성 후 화면에 바로 반영
+    const previewUrl = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, profile_url: previewUrl }));
   };
 
   return (
@@ -98,9 +105,9 @@ export default function EditDoctorModal({
 
         {/* 프로필 사진 */}
         <div className="flex justify-center mb-6 relative">
-          {/* 실제 표시되는 프로필 사진 */}
-          <img
-            src={doctor.profile_url || '/default-profile.png'}
+          {/** 실제 표시되는 프로필 사진 (formData.profile_url 우선, 없으면 doctor.profile_url) **/}
+ <img
+   src={formData.profile_url ?? doctor.profile_url ?? '/default-profile.png'}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover"
           />
@@ -134,10 +141,10 @@ export default function EditDoctorModal({
         <div className="grid grid-cols-2 gap-4">
           {/* 읽기 전용 필드 */}
           <div className="flex flex-col">
-            <label className="text-gray-700 mb-1">병원 ID</label>
+            <label className="text-gray-700 mb-1">병원명</label>
             <input
               type="text"
-              value={doctor.hospital_id ?? ''}
+              value={hospitalMap[doctor.hospital_id] ?? `ID: ${doctor.hospital_id}`}
               readOnly
               className="bg-gray-100 border px-4 py-2 rounded-md"
             />

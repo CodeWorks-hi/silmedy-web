@@ -31,6 +31,12 @@ export default function ManageTab() {
                 <th className="px-4 py-2 border">이메일</th>
                 <th className="px-4 py-2 border">과</th>
                 <th className="px-4 py-2 border">연락처</th>
+                {/* 여기에 요일 헤더 추가 */}
+                {['월', '화', '수', '목', '금'].map(day => (
+                  <th key={day} className="px-4 py-2 border text-center">
+                    {day}
+                  </th>
+                ))}
                 <th className="px-4 py-2 border">관리</th>
               </tr>
             </thead>
@@ -41,15 +47,21 @@ export default function ManageTab() {
                     <img
                       src={doctor.profile_url || '/default-profile.png'}
                       alt="profile"
-                      className="w-10 h-10 rounded-full mx-auto"
+                      className="w-12 h-14 rounded-full mx-auto"
                     />
                   </td>
-                  <td className="px-4 py-2 border">{doctor.name}</td>
-                  <td className="px-4 py-2 border">{doctor.gender}</td>
-                  <td className="px-4 py-2 border">{doctor.email}</td>
-                  <td className="px-4 py-2 border">{doctor.department}</td>
-                  <td className="px-4 py-2 border">{doctor.contact}</td>
-                  <td className="px-4 py-2 border space-x-2">
+                  <td className="px-4 py-2 border text-center">{doctor.name}</td>
+                  <td className="px-4 py-2 border text-center">{doctor.gender}</td>
+                  <td className="px-4 py-2 border text-center">{doctor.email}</td>
+                  <td className="px-4 py-2 border text-center">{doctor.department}</td>
+                  <td className="px-4 py-2 border text-center">{doctor.contact}</td>
+                  {/* availability에서 요일별 값 꺼내오기 */}
+                  {['월', '화', '수', '목', '금'].map(day => (
+                    <td key={day} className="px-4 py-2 border text-center">
+                      {doctor.availability?.[day] || '-'}
+                    </td>
+                  ))}
+                  <td className="px-4 py-2 border  text-center space-x-2">
                     {/* 삭제 버튼 */}
                     <button
                       onClick={() => {
