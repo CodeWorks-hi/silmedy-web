@@ -37,6 +37,7 @@ export interface DoctorConsultTabProps {
     days:    number;  // 복용 일수 또는 일일 복용 횟수
     amount:  number;  // 1회 투여량
     method:  string;  // 복용 방식/용법
+    frequency?: number; 
   }
   
   /**

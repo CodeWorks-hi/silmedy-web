@@ -54,6 +54,7 @@ export default function DoctorConsultTab({
   const [selectedDisease, setSelectedDisease] = useState<string>('')       // 선택된 질병 코드
   const [selectedDrug, setSelectedDrug]       = useState<string>('')       // 선택된 의약품 (코드+명)
   const [days, setDays]                       = useState<number>(1)         // 투약 일수
+
   const { prescriptions, addPrescription, removePrescription, clearPrescriptions } = usePrescriptions(drugs)
   const [savedDiagnosisId, setSavedDiagnosisId] = useState<number | null>(null);
   const [callStarted, setCallStarted] = useState(false);
@@ -107,7 +108,13 @@ export default function DoctorConsultTab({
   // ──────────────────────────────────────────────────────────
     const handleRegisterPrescription = () => {
         if (!selectedDisease || !selectedDrug || days < 1) return
-        addPrescription(selectedDisease, selectedDrug, days)
+        const found = drugs.find(
+          d => `${d.atc_code} ${d.name}` === selectedDrug
+        );
+        const frequency = found?.medication_amount ?? 1;      // ← 투약 회수: medication_amount 필드 사용
+        // addPrescription 호출 시 네 번째 인자로 frequency 넘겨주기
+
+        addPrescription(selectedDisease, selectedDrug, days, frequency)
         setSelectedDisease(''); setSelectedDrug(''); setDays(1)
       }
 
@@ -263,8 +270,8 @@ const handleConfirmSend = async () => {
             <PrescriptionFormSection
               diseases={diseases}
               drugs={drugs}
-              onAdd={({ disease, drug, days }) =>
-                addPrescription(disease, drug, days)
+              onAdd={({ disease, drug, days, frequency }) =>
+                addPrescription(disease, drug, days, frequency)
               }
             />
           )}

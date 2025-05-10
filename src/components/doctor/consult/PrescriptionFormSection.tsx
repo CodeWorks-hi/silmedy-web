@@ -7,7 +7,7 @@ import { Disease, Drug } from '@/types/consult';
 interface PrescriptionFormSectionProps {
   diseases: Disease[];
   drugs: Drug[];
-  onAdd(p: { disease: string; drug: string; days: number }): void;
+  onAdd(p: { disease: string, drug: string, days: number, frequency: number }): void;
 }
 
 export default function PrescriptionFormSection({
@@ -16,12 +16,16 @@ export default function PrescriptionFormSection({
   onAdd,
 }: PrescriptionFormSectionProps) {
   const [selectedDisease, setSelectedDisease] = useState('');
-  const [selectedDrug, setSelectedDrug]       = useState('');
-  const [days, setDays]                       = useState(1);
+  const [selectedDrug, setSelectedDrug] = useState('');
+  const [days, setDays] = useState(1);
 
   const handleAdd = () => {
     if (!selectedDisease || !selectedDrug || days < 1) return;
-    onAdd({ disease: selectedDisease, drug: selectedDrug, days });
+    const found = drugs.find(
+      d => `${d.atc_code} ${d.name}` === selectedDrug
+    );
+    const frequency = 3;  // 하드코딩
+    onAdd({ disease: selectedDisease, drug: selectedDrug, days, frequency });
     setSelectedDisease('');
     setSelectedDrug('');
     setDays(1);
@@ -65,7 +69,7 @@ export default function PrescriptionFormSection({
             placeholder="코드 또는 이름 입력"
             value={selectedDrug}
             onChange={e => setSelectedDrug(e.target.value)}
-            
+
           />
           <datalist id="drug-list">
             <option value="">— 선택 —</option>
