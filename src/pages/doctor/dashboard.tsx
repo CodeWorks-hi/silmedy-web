@@ -123,6 +123,7 @@ export default function DoctorDashboard() {
             doctorId={doctorId!}
             requestId={selectedRequestId}
             roomId={callRoomId}
+            hospitalId={Number(Cookie.get('hospital_id'))}
           />
         )}
       </div>

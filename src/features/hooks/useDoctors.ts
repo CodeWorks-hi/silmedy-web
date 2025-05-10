@@ -7,20 +7,7 @@ import {
   deleteDoctor as apiDeleteDoctor,
   updateDoctor as apiUpdateDoctor,   // ★ UPDATE API 헬퍼
 } from '@/lib/api';
-
-export interface Doctor {
-  license_number: string;
-  name: string;
-  gender: string;
-  email: string;
-  department: string;
-  contact: string;
-  availability?: Record<string, string>;
-  created_at?: string;
-  password?: string;
-  hospital_id?: number;
-  profile_url?: string;
-}
+import { Doctor } from '@/types/consult';
 
 export function useDoctors() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);

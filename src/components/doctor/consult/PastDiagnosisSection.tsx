@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import axios from '@/lib/axios';
+import { DiagnosisRecord } from '@/types/consult';
+
 
 // ──────────────────────────────────────────────────────────────
 // 각 진료 기록 항목의 데이터 구조를 정의합니다.
 // ──────────────────────────────────────────────────────────────
-interface DiagnosisRecord {
-  diagnosis_id:   string;  // 진료 기록 고유 식별자
-  diagnosed_at:   string;  // 진단이 이루어진 시각 전체 문자열 (예: '2025-04-29 14:46:53')
-  diagnosis_text: string;  // 진단 요약 또는 설명 텍스트
-  disease_code:   string;  // 진단된 질병의 코드
-}
+
 
 // ──────────────────────────────────────────────────────────────
 // 컴포넌트 Props: 진료 기록을 조회할 환자의 ID입니다.

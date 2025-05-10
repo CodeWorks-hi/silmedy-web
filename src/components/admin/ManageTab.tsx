@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useDoctors, Doctor } from '@/features/hooks/useDoctors';
+import { useDoctors } from '@/features/hooks/useDoctors';
 import EditDoctorModal from '@/components/admin/EditDoctorModal';
+import type { Doctor } from '@/types/consult'
 
 const PAGE_SIZE = 10;
 

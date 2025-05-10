@@ -11,8 +11,12 @@ interface Props {
   onConfirm(): void;
   patientName: string;
   prescriptions: Prescription[];
- doctorName: string;        // ← 추가
- licenseNumber: string;     // ← 추가
+  birthDate?: string;  
+  doctorName: string;        // ← 추가
+  licenseNumber: string;     // ← 추가
+  hospitalName?: string;
+  hospitalAddress?: string;
+  hospitalContact?: string;
 }
 
 export default function PrescriptionModal({
@@ -21,8 +25,12 @@ export default function PrescriptionModal({
   onConfirm,
   patientName,
   prescriptions,
- doctorName,
- licenseNumber,
+  doctorName,
+  birthDate,
+  licenseNumber,
+  hospitalName,
+  hospitalAddress,
+  hospitalContact,
 }: Props) {
   if (!isOpen) return null;
   return (
@@ -32,9 +40,13 @@ export default function PrescriptionModal({
         <div className="border p-4 mb-6">
           <PrescriptionPreview
             patientName={patientName}
+            birthDate={birthDate}
             prescriptions={prescriptions}
-           doctorName={doctorName}
-           licenseNumber={licenseNumber}
+            doctorName={doctorName}
+            licenseNumber={licenseNumber}
+            hospitalName={hospitalName}
+            hospitalAddress={hospitalAddress}
+            hospitalContact={hospitalContact}
           />
         </div>
         <div className="flex justify-end space-x-4">

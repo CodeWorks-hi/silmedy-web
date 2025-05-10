@@ -7,12 +7,7 @@ import { auth } from '@/firebase/firebase';
 import Cookie from 'js-cookie';  // 쿠키 조작 라이브러리
 import { login, getHospitals } from '@/lib/api'; // 공통 API 함수 불러오기
 import Image from 'next/image';  // Next.js 최적화 이미지
-
-// 보건소 데이터 구조 정의
-interface Hospital {
-  name: string;
-  hospital_id: number;
-}
+import { Hospital } from '@/types/consult';
 
 export default function LoginPage() {
   const router = useRouter();

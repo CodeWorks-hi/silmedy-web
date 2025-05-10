@@ -1,15 +1,8 @@
 // components/doctor/consult/PatientInfoSection.tsx
 'use client';
 
-interface PatientInfo {
-  patient_id:    string | number;  // 환자 고유 ID
-  name:          string;           // 환자 이름
-  birth_date:    string;           // 생년월일 (문자열)
-  contact:       string;           // 연락처
-  department:    string;           // 진료과
-  symptom_part?: string[];         // 증상 부위 목록
-  symptom_type?: string[];         // 증상 유형 목록
-}
+import { PatientInfo } from "@/types/consult";
+
 
 interface Props {
   patientInfo: PatientInfo | null; // 부모로부터 전달받은 환자 정보 (로딩 중에는 null)

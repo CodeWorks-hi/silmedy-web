@@ -3,22 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { getWaitingCareRequests } from '@/lib/api';  // 공통 API 모듈에서 가져오기
+import { CareRequest } from '@/types/consult';
 
-export interface CareRequest {
-  request_id: number;
-  department: string;
-  book_date: string;
-  book_hour: string;
-  patient_id: string | number;
-  sign_language_needed: boolean;
-  symptom_part: string[];
-  symptom_type: string[];
-  is_solved: boolean;
-  doctor_id: number;
-  requested_at: string;
-  name?: string;
-  birth_date?: string;
-}
 
 /**
  * useCareRequests 훅

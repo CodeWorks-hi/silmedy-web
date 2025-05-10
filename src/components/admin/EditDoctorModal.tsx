@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Doctor, useDoctors } from '@/features/hooks/useDoctors';
+import { useDoctors } from '@/features/hooks/useDoctors';
 import { uploadDoctorProfile } from '@/lib/api';
 import { useHospitals }      from '@/features/hooks/useHospitals'
+import type { Doctor } from '@/types/consult'
 
 
 interface EditDoctorModalProps {

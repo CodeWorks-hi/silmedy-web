@@ -1,9 +1,10 @@
 // src/features/hooks/useHospitals.ts
 import { useState, useEffect } from 'react';
 import { getHospitals } from '@/lib/api';
+import { Hospital } from '@/types/consult';
 
 export function useHospitals() {
-  const [hospitals, setHospitals] = useState<{ hospital_id: number; name: string }[]>([]);
+    const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string|null>(null);
 
