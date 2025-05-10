@@ -55,7 +55,7 @@ export default function ManageTab() {
           {/* 테이블 */}
           <div className="overflow-auto max-h-[600px]">
             <table className="min-w-full border text-sm">
-              <thead className="bg-gray-100">
+              <thead className="bg-cyan-100 text-center">
                 <tr>
                   <th className="px-4 py-2 border">사진</th>
                   <th className="px-4 py-2 border">이름</th>
@@ -118,7 +118,7 @@ export default function ManageTab() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-cyan-100 text-center rounded font-bold disabled:opacity-50"
             >
               « 이전
             </button>
@@ -126,7 +126,7 @@ export default function ManageTab() {
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-cyan-100 text-center rounded font-bold disabled:opacity-50"
             >
               다음 »
             </button>

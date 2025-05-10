@@ -30,7 +30,7 @@ export default function UploadTab() {
         {selectedFile ? (
           <div className="text-gray-700">{selectedFile.name}</div>
         ) : (
-          <div className="text-gray-400">파일을 선택하거나 드래그하세요.</div>
+          <div className="text-gray-400">화먼을 클릭하여 파일을 선택하거나 드래그 후 업로드 버튼 클릭</div>
         )}
       </div>
 
@@ -76,7 +76,7 @@ export default function UploadTab() {
       <div className="flex justify-center space-x-4 mb-8">
         <button
           onClick={resetFile}
-          className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md"
+          className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md"
         >
           취소하기
         </button>
@@ -84,7 +84,7 @@ export default function UploadTab() {
           onClick={uploadDoctors}
           className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md"
         >
-          업로드
+          파일등록
         </button>
       </div>
 
@@ -95,7 +95,7 @@ export default function UploadTab() {
           download="doctor_upload_sample.xlsx"
           className="inline-block bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded"
         >
-          샘플 파일 다운로드
+          샘플파일 다운로드
         </a>
 
       </div>
@@ -106,7 +106,7 @@ export default function UploadTab() {
         <h3 className="text-lg font-semibold mb-4">샘플 파일 양식</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-cyan-100 text-center">
               <tr>
                 <th className="px-4 py-2 border">이름</th>
                 <th className="px-4 py-2 border">성별</th>
