@@ -102,6 +102,27 @@ export const deleteDoctor = async (
 };
 
 /**
+ * 프로필 사진 업로드
+ * POST /doctors/{license_number}/profile
+ */
+export const uploadDoctorProfile = async (
+  licenseNumber: string,
+  file: File
+): Promise<{ profile_url: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post<{ profile_url: string }>(
+    `/doctors/${licenseNumber}/profile`,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }
+  );
+  return response.data;
+};
+
+/**
  * 질병 목록 조회
  * GET /diseases
  */

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Doctor, useDoctors } from '@/features/hooks/useDoctors';
+import { uploadDoctorProfile } from '@/lib/api';
 
 interface EditDoctorModalProps {
   doctor: Doctor;
@@ -25,6 +26,7 @@ export default function EditDoctorModal({
     availability: doctor.availability || {},
   });
   const [updating, setUpdating] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -67,18 +69,65 @@ export default function EditDoctorModal({
     }
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // API 헬퍼 함수로 업로드 (axios 인스턴스(api) 사용)
+      const { profile_url: newUrl } = await uploadDoctorProfile(
+        doctor.license_number,
+        file
+      );
+      // 상위 리스트를 갱신
+      onUpdated();
+
+      // 모달 내 이미지 즉시 반영
+      setFormData(prev => ({ ...prev, profile_url: newUrl }));
+      alert('프로필이 업데이트되었습니다.');
+    } catch (err) {
+      console.error('프로필 업로드 실패', err);
+      alert('프로필 업로드에 실패했습니다.');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
         <h2 className="text-2xl font-bold mb-6">직원 정보 수정</h2>
 
         {/* 프로필 사진 */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6 relative">
+          {/* 실제 표시되는 프로필 사진 */}
           <img
             src={doctor.profile_url || '/default-profile.png'}
             alt="Profile"
             className="w-24 h-24 rounded-full object-cover"
           />
+          {/* 투명한 파일 입력(input) */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}      // 파일 선택 핸들러 (아래에 구현)
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer rounded-full"
+          />
+          {/* 카메라 아이콘 (버튼처럼) */}
+          <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow-md">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-gray-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 8l3-3m0 0l3 3m-3-3v12a1 1 0 001 1h12a1 1 0 001-1V8m-4 4h.01M12 16h.01M16 12h.01M8 12h.01"
+              />
+            </svg>
+          </div>
         </div>
 
         {/* 폼 입력 영역 */}
