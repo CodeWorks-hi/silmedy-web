@@ -23,7 +23,7 @@ export default function VideoCallRoom({
   // 콜 컨트롤 전달
   useEffect(() => {
     onCallReady?.({ startCall, stopCall });
-  }, [onCallReady, startCall, stopCall]);
+  }, []);
 
   // 로컬/원격 스트림 바인딩
   useEffect(() => { if (localRef.current && localStream) localRef.current.srcObject = localStream; }, [localStream]);
