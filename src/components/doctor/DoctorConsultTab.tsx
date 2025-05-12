@@ -73,6 +73,7 @@ export default function DoctorConsultTab({
   // ──────────────────────────────────────────────────────────
   const handleCallReady = useCallback(
     ({ startCall, stopCall }: { startCall(): void; stopCall(): void }) => {
+      console.log("📞 [ConsultTab] onCallReady! roomId:", roomId);
       setCallActions({ startCall, stopCall })                             // WebRTC 훅으로부터 start/stop 함수 수신
     },
     []
@@ -189,6 +190,11 @@ export default function DoctorConsultTab({
   // 8) 영상 통화 시작 핸들러
   // ──────────────────────────────────────────────────────────
   const handleStartCall = async () => {
+    console.log("🔔 [DoctorConsultTab] handleStartCall 호출!", {
+      roomId,
+      patientId: patientInfo?.patient_id,
+      doctorId,
+    });
     callActions?.startCall()                                              // WebRTC startCall 실행
     try {
       await apiStartCall({                                                // 백엔드에 시작 요청
@@ -198,6 +204,7 @@ export default function DoctorConsultTab({
         patient_fcm_token: patientInfo.fcm_token,                         // • FCM 토큰
       })
       alert('환자에게 통화 요청을 보냈습니다.')                           // 알림
+      console.log("✅ apiStartCall 성공:", roomId);
       setCallStarted(true);
     } catch (err) {
       console.error('통화 요청 실패:', err)                             // 오류 로그
@@ -322,7 +329,10 @@ export default function DoctorConsultTab({
           <div className="mt-4 flex justify-center space-x-4">
             {/* ▶ 영상 진료 시작 */}
             <button
-              onClick={handleStartCall}
+              onClick={() => {
+                console.log("▶▶▶ [ConsultTab] 버튼 클릭! roomId:", roomId);
+                handleStartCall();
+              }}
               disabled={callStarted}
               className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
             >

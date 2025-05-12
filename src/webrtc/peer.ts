@@ -1,7 +1,11 @@
 const iceServers = [
   { urls: 'stun:stun.l.google.com:19302' },
   {
-    urls: 'turn:13.209.17.4:3478',
+    urls: [
+      'turn:turn.boohoday.com:3478?transport=udp',
+      'turn:turn.boohoday.com:3478?transport=tcp',
+      'turns:turn.boohoday.com:5349?transport=tcp'
+    ],
     username: 'testuser',
     credential: 'testpass',
   },
@@ -44,6 +48,7 @@ export class WebRTCPeer {
     };
 
     this.pc.ontrack = (event) => {
+      console.log('🎥 useWebRTC ontrack 이벤트 발생:', event);
       const stream = event.streams?.[0] ?? new MediaStream([event.track]);
       stream.getTracks().forEach((track) => {
         console.log(`📥 Adding track: kind=${track.kind}, id=${track.id}`);

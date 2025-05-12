@@ -1,19 +1,20 @@
-// src/components/doctor/DoctorWaitingTab.tsx
 'use client';
 
 import { useState } from 'react';
 import { useCareRequests } from '@/features/hooks/useCareRequests';
+import { CareRequest } from '@/types/consult';
 
 interface DoctorWaitingTabProps {
   doctorId: string;
-  onSelectRequest: (requestId: number) => void;
+  // 이제 requestId 대신 CareRequest 전체를 넘기도록
+  onSelectRequest: (row: { request_id: number; patient_id: string | number }) => void;
 }
 
 /**
  * DoctorWaitingTab 컴포넌트
  * - useCareRequests 훅으로 대기 환자 목록 조회
  * - 페이징 처리 후 테이블 렌더링
- * - “진료 시작” 버튼 클릭 시 상위 컴포넌트에 request_id 전달
+ * - “진료 시작” 버튼 클릭 시 상위 컴포넌트에 request_id + patient_id 전달
  */
 export default function DoctorWaitingTab({
   doctorId,
@@ -27,14 +28,9 @@ export default function DoctorWaitingTab({
   const itemsPerPage = 10;
 
   // 3) 로딩 및 에러 처리
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
-  if (error) {
-    return <div className="text-red-500">에러: {error}</div>;
-  }
+  if (loading) return <div>로딩 중...</div>;
+  if (error)   return <div className="text-red-500">에러: {error}</div>;
 
-  // 4) 유효한 배열로 변환 후 페이지 데이터 산출
   const validRequests = careRequests ?? [];
   const start = (currentPage - 1) * itemsPerPage;
   const pageData = validRequests.slice(start, start + itemsPerPage);
@@ -55,7 +51,7 @@ export default function DoctorWaitingTab({
           </tr>
         </thead>
         <tbody>
-          {pageData.map((req) => (
+          {pageData.map((req: CareRequest) => (
             <tr key={req.request_id} className="text-center border-t">
               <td className="py-2 px-4">{req.department}</td>
               <td className="py-2 px-4">{req.name || '-'}</td>
@@ -65,7 +61,12 @@ export default function DoctorWaitingTab({
               <td className="py-2 px-4">{req.symptom_type?.join(', ')}</td>
               <td className="py-2 px-4">
                 <button
-                  onClick={() => onSelectRequest(req.request_id)}
+                  onClick={() =>
+                    onSelectRequest({
+                      request_id: req.request_id,
+                      patient_id: req.patient_id,
+                    })
+                  }
                   className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded"
                 >
                   진료 시작
@@ -83,7 +84,9 @@ export default function DoctorWaitingTab({
             key={page}
             onClick={() => setCurrentPage(page)}
             className={`px-3 py-1 rounded ${
-              currentPage === page ? 'bg-cyan-500 text-white' : 'bg-gray-200' }`}>
+              currentPage === page ? 'bg-cyan-500 text-white' : 'bg-gray-200'
+            }`}
+          >
             {page}
           </button>
         ))}
