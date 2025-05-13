@@ -44,34 +44,31 @@ export default function VideoCallRoom({
   // DataChannel 로 받은 메시지(환자 화면용 자막)
   useEffect(() => {
     if (!dataChannel) return;
-    const SR =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-  
-    // 음성 인식 인스턴스
-    const recog = new SR();
-    recog.continuous = true;
-    recog.interimResults = true;
-    recog.lang = 'ko-KR';
-  
-    // 받은 메시지(자막) 처리
-    dataChannel.onmessage = (e) => {
+    // 1) 메시지 수신 핸들러
+    const handleMessage = (e: MessageEvent) => {
       console.log('[VC] 📩 받은 자막:', e.data);
-      setSubtitle(e.data);
+      setSubtitle(e.data as string);
     };
-  
-    // 채널 열리면 인식 시작
-    dataChannel.onopen = () => {
+    // 2) 오픈/클로즈 핸들러
+    const handleOpen = () => {
       console.log('[VC] 📡 dataChannel opened — start Recognition');
+      // 음성인식 시작
       recog.start();
     };
-    dataChannel.onclose = () => {
+    const handleClose = () => {
       console.log('[VC] 📡 dataChannel closed — stop Recognition');
       recog.stop();
     };
   
-    // 음성 인식 결과 전송
+    // ▶ SpeechRecognition 세팅
+    const SR =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const recog = new SR();
+    recog.continuous = true;
+    recog.interimResults = true;
+    recog.lang = 'ko-KR';
     recog.onresult = (e: any) => {
       let text = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -81,11 +78,17 @@ export default function VideoCallRoom({
       dataChannel.send(text);
     };
   
+    // ▶ 이벤트 등록 (overwrite 위험 없이)
+    dataChannel.onmessage = handleMessage;
+    dataChannel.onopen    = handleOpen;
+    dataChannel.onclose   = handleClose;
+  
+    // 정리
     return () => {
       recog.stop();
-      dataChannel.onopen = null!;
-      dataChannel.onmessage = null!;
-      dataChannel.onclose = null!;
+      dataChannel.onmessage = null;
+      dataChannel.onopen    = null;
+      dataChannel.onclose   = null;
     };
   }, [dataChannel]);
 
