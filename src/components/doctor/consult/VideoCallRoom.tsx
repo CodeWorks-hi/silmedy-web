@@ -55,10 +55,11 @@ export default function VideoCallRoom({
 
   // SpeechRecognition → DataChannel.send() (의사 화면)
   useEffect(() => {
+    if (!dataChannel) return;
     const SR =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
-    if (!SR) return;
+
 
     const recog = new SR();
     recog.continuous = true;
@@ -70,7 +71,7 @@ export default function VideoCallRoom({
       for (let i = e.resultIndex; i < e.results.length; i++) {
         text += e.results[i][0].transcript;
       }
-      if (dataChannel.readyState === 'open') {
+      if (dataChannel?.readyState === 'open') {
         console.log("✉️ [VC] send subtitle:", text);
         dataChannel.send(text);   // ← 이 호출이 있어야 자막이 전송됩니다.
       } else {
