@@ -63,7 +63,8 @@ export default function DoctorConsultTab({
   const { hospitals } = useHospitals();
   const adminHospitalId = Cookie.get('hospital_id');
   const myHospital = hospitals.find(h => h.hospital_id === hospitalId);
-  const [prescriptionId, setPrescriptionId] = useState<number|null>(null);
+  const [pendingPrescriptionId, setPendingPrescriptionId] = useState<number|null>(null);
+  
 
 
 
@@ -109,55 +110,66 @@ export default function DoctorConsultTab({
   }, [])
 
   // ──────────────────────────────────────────────────────────
-  // 7) 등록된 처방전 전체 전송
-  // ──────────────────────────────────────────────────────────
-  const handleSendAllPrescriptions = () => {
-    // 처방전 리스트가 비어있거나 진단서가 아직 저장되지 않았다면 아무 동작도 하지 않습니다.
-    if (prescriptions.length === 0 || savedDiagnosisId === null) return;
+// 7) 등록된 처방전 전체 전송
+// ──────────────────────────────────────────────────────────
+const [prescriptionId, setPrescriptionId] = useState<number | null>(null);
+const [doCapture, setDoCapture]       = useState(false);
 
-    // 모달을 열어서 사용자에게 “예/아니오”를 묻습니다.
-    setIsModalOpen(true);
-  };
+const handleSendAllPrescriptions = () => {
+  if (prescriptions.length === 0 || savedDiagnosisId === null) return;
+  setIsModalOpen(true);
+};
 
-  // ▶ 모달에서 “예” 클릭 시 실제 전송 로직
-  const handleConfirmSend = async () => {
-    try {
-      // 1) 화면 내 미리보기 영역 캡처 (모달은 아직 열린 상태)
-      const el = document.getElementById('prescription-preview')
-      if (!el) throw new Error('미리보기 영역을 찾을 수 없습니다.')
-      const canvas = await html2canvas(el)
-      const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'))
-      if (!blob) throw new Error('이미지 생성 실패')
-  
-      // 2) 서버에 메타만 먼저 저장 → ID 발급
-      const { prescription_id } = await createPrescriptionMeta({
-        diagnosis_id:    savedDiagnosisId!,
-        doctor_id:       doctorId,
-        patient_id:      patientInfo!.patient_id,
-        medication_days: prescriptions.map(p => p.days),
-        medication_list: prescriptions.map(p => ({
-          disease_id: p.disease,
-          drug_id:    p.drug.split(' ')[0],
-        })),
-      });
-  
-      // 3) S3 업로드 (이미지)
-      const key = `prescriptions/${prescription_id}.png`
-      const url = await uploadToS3(blob, key)
-  
-      // 4) 최종 API 호출로 URL 업데이트
-      await updatePrescriptionUrl(prescription_id, url);
-  
-      // 5) 모달 닫기 & 상태 정리
-      setIsModalOpen(false)
-      alert('처방전을 성공적으로 저장했습니다.')
-      clearPrescriptions()
-  
-    } catch (err) {
-      console.error('처방전 전송 실패', err)
-      alert('처방전 전송에 실패했습니다.')
-    }
+// ▶ 모달에서 “예” 클릭 시 실제 전송 로직
+const handleConfirmSend = async () => {
+  try {
+    // 1) 메타 저장 → ID 발급
+    const { prescription_id } = await createPrescriptionMeta({
+      diagnosis_id:    savedDiagnosisId!,
+      doctor_id:       doctorId,
+      patient_id:      patientInfo!.patient_id,
+      medication_days: prescriptions.map(p => p.days),
+      medication_list: prescriptions.map(p => ({
+        disease_id: p.disease,
+        drug_id:    p.drug.split(' ')[0],
+      })),
+    });
+
+    // 2) 상태에 ID 반영 & 캡처 트리거
+    setPrescriptionId(prescription_id);
+    setDoCapture(true);
+  } catch (err) {
+    console.error('처방전 전송 실패', err);
+    alert('처방전 전송에 실패했습니다.');
   }
+};
+
+// ▶ 발급된 ID가 반영되고 캡처 플래그가 켜지면 한 번만 실행
+useEffect(() => {
+  if (prescriptionId !== null && doCapture) {
+    (async () => {
+      // 3) DOM에 찍힌 ID를 반영해서 캡처
+      const el = document.getElementById('prescription-preview');
+      if (!el) return;
+      const canvas = await html2canvas(el);
+      const blob   = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/png'));
+      if (!blob) throw new Error('이미지 생성 실패');
+
+      // 4) S3 업로드
+      const key = `prescriptions/${prescriptionId}.png`;
+      const url = await uploadToS3(blob, key);
+
+      // 5) URL 업데이트
+      await updatePrescriptionUrl(prescriptionId, url);
+
+      // 6) 마무리 정리
+      setIsModalOpen(false);
+      alert('처방전을 성공적으로 저장했습니다.');
+      clearPrescriptions();
+      setDoCapture(false);
+    })();
+  }
+}, [prescriptionId, doCapture]);
   // ──────────────────────────────────────────────────────────
   // ▶ “진단서 저장” 버튼 클릭 핸들러
   // ──────────────────────────────────────────────────────────
@@ -373,6 +385,7 @@ export default function DoctorConsultTab({
         hospitalName={myHospital?.name}
         hospitalAddress={myHospital?.address}
         hospitalContact={myHospital?.contact}
+        prescriptionId={prescriptionId}
       />
     </>
   );

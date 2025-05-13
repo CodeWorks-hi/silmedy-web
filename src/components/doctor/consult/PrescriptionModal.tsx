@@ -17,6 +17,7 @@ interface Props {
   hospitalName?: string;
   hospitalAddress?: string;
   hospitalContact?: string;
+  prescriptionId?: number;
 }
 
 export default function PrescriptionModal({
@@ -31,6 +32,7 @@ export default function PrescriptionModal({
   hospitalName,
   hospitalAddress,
   hospitalContact,
+  prescriptionId,
 }: Props) {
   if (!isOpen) return null;
   return (
@@ -47,6 +49,7 @@ export default function PrescriptionModal({
             hospitalName={hospitalName}
             hospitalAddress={hospitalAddress}
             hospitalContact={hospitalContact}
+            prescriptionId={prescriptionId}
           />
         </div>
         <div className="flex justify-end space-x-4">

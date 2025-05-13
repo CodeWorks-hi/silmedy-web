@@ -17,6 +17,10 @@ export function useWebRTC(roomId: string) {
     setLocalStream(peer.localStream);
     setRemoteStream(peer.remoteStream);
 
+    peer.pc.ondatachannel = (event) => {
+      setDataChannel(event.channel);
+    };
+
     const stream = await peer.initLocalMedia();
     setLocalStream(stream);
     setRemoteStream(peer.remoteStream);
