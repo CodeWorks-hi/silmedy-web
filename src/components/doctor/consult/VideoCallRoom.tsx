@@ -44,55 +44,50 @@ export default function VideoCallRoom({
   // DataChannel 로 받은 메시지(환자 화면용 자막)
   useEffect(() => {
     if (!dataChannel) return;
-    dataChannel.onopen  = () => { console.log('[VC] 📡 dataChannel opened'); };
-    dataChannel.onclose = () => { console.log('[VC] 📡 dataChannel closed'); };
+    const SR =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) return;
   
+    // 음성 인식 인스턴스
+    const recog = new SR();
+    recog.continuous = true;
+    recog.interimResults = true;
+    recog.lang = 'ko-KR';
+  
+    // 받은 메시지(자막) 처리
     dataChannel.onmessage = (e) => {
       console.log('[VC] 📩 받은 자막:', e.data);
       setSubtitle(e.data);
     };
+  
+    // 채널 열리면 인식 시작
+    dataChannel.onopen = () => {
+      console.log('[VC] 📡 dataChannel opened — start Recognition');
+      recog.start();
+    };
+    dataChannel.onclose = () => {
+      console.log('[VC] 📡 dataChannel closed — stop Recognition');
+      recog.stop();
+    };
+  
+    // 음성 인식 결과 전송
+    recog.onresult = (e: any) => {
+      let text = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        text += e.results[i][0].transcript;
+      }
+      console.log('✉️ [VC] send subtitle:', text);
+      dataChannel.send(text);
+    };
+  
+    return () => {
+      recog.stop();
+      dataChannel.onopen = null!;
+      dataChannel.onmessage = null!;
+      dataChannel.onclose = null!;
+    };
   }, [dataChannel]);
-
-  // SpeechRecognition → DataChannel.send() (의사 화면)
-  useEffect(() => {
-    if (!dataChannel) return;
-    const SR =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-
-      if (!SR || !dataChannel) return;
-
-      const recog = new SR();
-      recog.continuous = true;
-      recog.interimResults = true;
-      recog.lang = 'ko-KR';
-    
-      recog.onresult = (e: any) => {
-        let text = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          text += e.results[i][0].transcript;
-        }
-        console.log("✉️ [VC] send subtitle:", text);
-        dataChannel.send(text);
-      };
-    
-      // 데이터 채널이 완전히 열렸을 때만 음성 인식 시작
-      dataChannel.onopen = () => {
-        console.log("[VC] 📡 dataChannel opened — start Recognition");
-        recog.start();
-      };
-      dataChannel.onclose = () => {
-        console.log("[VC] 📡 dataChannel closed — stop Recognition");
-        recog.stop();
-      };
-    
-      return () => {
-        recog.stop();
-        // 채널 핸들러도 정리
-        dataChannel.onopen = null!;
-        dataChannel.onclose = null!;
-      };
-    }, [dataChannel]);
 
 
 
