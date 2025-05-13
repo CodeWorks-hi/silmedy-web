@@ -24,7 +24,7 @@ export class WebRTCPeer {
     this.remoteStream = new MediaStream();
 
     // 데이터 채널 생성 (의사→환자 자막 전송용)
-    this.dataChannel = this.pc.createDataChannel('subtitles');
+    this.dataChannel = this.pc.createDataChannel("subtitles", { negotiated: false });
     this.dataChannel.onopen = () => console.log('📡 DC open');
     this.dataChannel.onclose = () => console.log('📡 DC closed');
 

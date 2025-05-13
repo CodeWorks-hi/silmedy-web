@@ -60,27 +60,39 @@ export default function VideoCallRoom({
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
 
+      if (!SR || !dataChannel) return;
 
-    const recog = new SR();
-    recog.continuous = true;
-    recog.interimResults = true;
-    recog.lang = 'ko-KR';
-
-    recog.onresult = (e: any) => {
-      let text = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        text += e.results[i][0].transcript;
-      }
-      if (dataChannel?.readyState === 'open') {
+      const recog = new SR();
+      recog.continuous = true;
+      recog.interimResults = true;
+      recog.lang = 'ko-KR';
+    
+      recog.onresult = (e: any) => {
+        let text = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          text += e.results[i][0].transcript;
+        }
         console.log("✉️ [VC] send subtitle:", text);
-        dataChannel.send(text);   // ← 이 호출이 있어야 자막이 전송됩니다.
-      } else {
-        console.warn("⚠️ [VC] dataChannel not open yet, state=", dataChannel.readyState);
-      }
-    };
-    recog.start();
-    return () => recog.stop();
-  }, [dataChannel]);
+        dataChannel.send(text);
+      };
+    
+      // 데이터 채널이 완전히 열렸을 때만 음성 인식 시작
+      dataChannel.onopen = () => {
+        console.log("[VC] 📡 dataChannel opened — start Recognition");
+        recog.start();
+      };
+      dataChannel.onclose = () => {
+        console.log("[VC] 📡 dataChannel closed — stop Recognition");
+        recog.stop();
+      };
+    
+      return () => {
+        recog.stop();
+        // 채널 핸들러도 정리
+        dataChannel.onopen = null!;
+        dataChannel.onclose = null!;
+      };
+    }, [dataChannel]);
 
 
 

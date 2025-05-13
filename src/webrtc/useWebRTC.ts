@@ -13,6 +13,7 @@ export function useWebRTC(roomId: string) {
   const startCall = async () => {
     const peer = new WebRTCPeer();
     peerRef.current = peer;
+    const dc = peer.pc.createDataChannel("subtitles");
     console.log('[WebRTC] created dataChannel on caller side:', peer.dataChannel.readyState);
     setDataChannel(peer.dataChannel);
     peer.dataChannel.onopen  = () => console.log("📡 [WebRTC] dataChannel OPEN");
@@ -85,6 +86,11 @@ export function useWebRTC(roomId: string) {
     }
     setLocalStream(null);
     setRemoteStream(null);
+
+    // signaling 데이터도 지워서 안드로이드가 종료를 감지하도록
+  remove(ref(db, `calls/${roomId}`))
+  .then(() => console.log('calls 경로 삭제'))
+  .catch(err => console.error(err));
   };
 
   useEffect(() => {
