@@ -186,7 +186,7 @@ useEffect(() => {
         diagnosis_text: consultMemo,               // 의사 소견 텍스트
         request_id: requestId,                     // 케어 요청 ID
         summary_text: '',                          // (필요시 요약)
-        symptoms: patientInfo.symptom_part || [],  // 예시로 증상 부위
+        symptoms: patientInfo.symptom_type || [],  // 예시로 증상 부위
       };
       const { diagnosis_id } = await createDiagnosis(payload);
       setSavedDiagnosisId(diagnosis_id);           // 저장 완료 시 ID 저장

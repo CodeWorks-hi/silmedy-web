@@ -13,17 +13,27 @@ export function useWebRTC(roomId: string) {
   const startCall = async () => {
     const peer = new WebRTCPeer();
     peerRef.current = peer;
+    console.log('[WebRTC] created dataChannel on caller side:', peer.dataChannel.readyState);
+    setDataChannel(peer.dataChannel);
+    peer.dataChannel.onopen  = () => console.log("📡 [WebRTC] dataChannel OPEN");
+    peer.dataChannel.onclose = () => console.log("📡 [WebRTC] dataChannel CLOSED");
+
     await peer.initLocalMedia();
     setLocalStream(peer.localStream);
     setRemoteStream(peer.remoteStream);
 
     peer.pc.ondatachannel = (event) => {
+      console.log('[WebRTC] ondatachannel, label=', event.channel.label, 'state=', event.channel.readyState);
       setDataChannel(event.channel);
     };
 
     const stream = await peer.initLocalMedia();
     setLocalStream(stream);
     setRemoteStream(peer.remoteStream);
+
+    peer.pc.ondatachannel = (event) => {
+      setDataChannel(event.channel);
+    };
 
     const offer = await peer.createOffer();
     await set(ref(db, `calls/${roomId}/offer`), offer);
@@ -33,7 +43,7 @@ export function useWebRTC(roomId: string) {
       push(callerRef, candidate.toJSON());
     });
 
-    const answerRef = ref(db, `calls/${roomId}/answer`);
+    const answerRef = ref(db, `calls/${roomId}/answer`);peer.pc.ondatachannel
     onValue(answerRef, async (snapshot) => {
       const raw = snapshot.val();
 
@@ -86,6 +96,6 @@ export function useWebRTC(roomId: string) {
     };
   }, [roomId]);
 
-  return { localStream, remoteStream, startCall, stopCall };
+  return { localStream, remoteStream, dataChannel, startCall, stopCall };
 }
 
