@@ -1,14 +1,9 @@
 const iceServers = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  {
-    urls: [
-      'turn:turn.boohoday.com:3478?transport=udp',
-      'turn:turn.boohoday.com:3478?transport=tcp',
-      'turns:turn.boohoday.com:5349?transport=tcp'
-    ],
-    username: 'testuser',
-    credential: 'testpass',
-  },
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "turn:13.209.17.4:3478?transport=udp",   username:"testuser", credential:"testpass" },
+  { urls: "turn:13.209.17.4:3478?transport=tcp",   username:"testuser", credential:"testpass" },
+  { urls: "turn:13.209.17.4:5349?transport=tcp",   username:"testuser", credential:"testpass" },
+  { urls: "turn:13.209.17.4:443?transport=tcp",    username:"testuser", credential:"testpass" },
 ];
 
 export class WebRTCPeer {

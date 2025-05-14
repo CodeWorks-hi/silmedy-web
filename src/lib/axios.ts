@@ -24,15 +24,34 @@ instance.interceptors.request.use(
 
 // 4) 응답 인터셉터: 401 Unauthorized 처리 및 그 외 에러 로깅
 instance.interceptors.response.use(
-  response => response,                                         // 문제가 없으면 응답 그대로 반환
-  error => {
-    if (error.response?.status === 401) {
-      console.warn('🔒 인증 실패: 로그인 필요');
-      // TODO: 로그인 페이지 리다이렉트 처리 가능
-    } else {
+  response => response,
+  async error => {
+    const original = error.config;
+    // 1) 401 이면서, 아직 retry 시도를 안 해봤다면
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        // 2) /auth/refresh 로 쿠키에 담긴 refreshToken 자동 전송
+        const { data } = await instance.post('/auth/refresh');
+        // 3) 새로 받은 accessToken 로 로컬스토리지 업데이트
+        localStorage.setItem('access_token', data.access_token);
+        // 4) 원래 요청 헤더 갱신
+        original.headers.Authorization = `Bearer ${data.access_token}`;
+        // 5) 다시 시도
+        return instance(original);
+      } catch (refreshError) {
+        console.error('🔄 토큰 재발급 실패:', refreshError);
+        // 필요시 로그인 페이지로 리디렉트
+        // window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // 그 외 에러는 기존대로
+    if (error.response?.status !== 401) {
       console.error('❌ API 요청 실패:', error.response || error);
     }
-    return Promise.reject(error);                               // 에러를 호출부로 전달
+    return Promise.reject(error);
   }
 );
 
