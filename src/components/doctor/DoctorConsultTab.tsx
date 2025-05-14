@@ -40,13 +40,15 @@ import PrescriptionModal from '@/components/doctor/consult/PrescriptionModal';  
 
 
 
+
 export default function DoctorConsultTab({
   doctorId,                     // 🔑 의사 사용자 ID
   requestId,                    // 🔑 케어 요청(진료 요청) ID
   roomId,                       // 🔑 WebRTC 룸 ID
   doctorName,
   hospitalId,
-}: DoctorConsultTabProps) {
+  onCompleteRequest,
+}: DoctorConsultTabProps& { onCompleteRequest: () => void }) {
   // ──────────────────────────────────────────────────────────
   // 1) State 선언
   // ──────────────────────────────────────────────────────────
@@ -245,6 +247,7 @@ useEffect(() => {
     try {
       await completeRequest(requestId)                                    // 진료 완료 API 호출
       alert('진료를 종료했습니다.')                                       // 성공 알림
+      onCompleteRequest();
     } catch (err) {
       console.error('진료 완료 실패:', err)                             // 오류 로그
       alert('진료 종료 처리에 실패했습니다.')                           // 실패 알림

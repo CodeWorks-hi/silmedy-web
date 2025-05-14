@@ -132,6 +132,7 @@ export default function DoctorDashboard() {
               requestId={selectedRequestId}
               roomId={callRoomId}
               hospitalId={Number(Cookie.get('hospital_id'))}
+              onCompleteRequest={() => setActiveTab('waiting')}
             />
           )}
       </div>
