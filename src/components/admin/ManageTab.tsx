@@ -75,9 +75,14 @@ export default function ManageTab() {
                   <tr key={doctor.license_number}>
                     <td className="px-4 py-2 border">
                       <img
-                        src={doctor.profile_url || '/default-profile.png'}
-                        alt="profile"
-                        className="w-14 h-15 rounded-full mx-auto" // 이미지 사이즈 w,h 의 숫자
+                        src={doctor.profile_url
+                          ? doctor.profile_url
+                          : doctor.gender === '남'
+                            ? '/icon_m.png'
+                            : '/icon_g.png'
+                        }
+                        alt={doctor.profile_url ? 'profile' : doctor.gender === '남' ? 'male icon' : 'female icon'}
+                        className="w-14 h-15 rounded-full mx-auto"
                       />
                     </td>
                     <td className="px-4 py-2 border text-center">{doctor.name}</td>
