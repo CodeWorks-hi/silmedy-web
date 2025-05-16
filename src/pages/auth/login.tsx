@@ -14,6 +14,7 @@ export default function LoginPage() {
 
   // 보건소 목록 상태
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospitalName, setSelectedHospitalName] = useState('');
   // 선택된 보건소 ID 상태
   const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null);
   // 로그인 역할 상태 ('admin' 또는 'doctor')
@@ -31,6 +32,7 @@ export default function LoginPage() {
       // API 함수로 보건소 목록 가져오기
       try {
         const list = await getHospitals();       // API 호출
+        list.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
         setHospitals(list);                      // 상태에 저장
       } catch (error) {
         console.error('보건소 목록 조회 실패:', error);
@@ -148,22 +150,24 @@ export default function LoginPage() {
           {/* 보건소 선택 */}
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">보건소</label>
-            <select
-              value={selectedHospitalId ?? ''}
-              onChange={handleHospitalChange}
-              className="w-full border rounded-md p-2 text-sm"
-              required
-            >
-              <option value="">보건소 선택</option>
-              {hospitals.map(hospital => (
-                <option
-                  key={hospital.hospital_id}
-                  value={hospital.hospital_id}
-                >
-                  {hospital.name}
-                </option>
-              ))}
-            </select>
+            <input
+      list="hospital-list"
+      value={selectedHospitalName}
+      onChange={e => {
+        const name = e.target.value;
+        setSelectedHospitalName(name);
+        const found = hospitals.find(h => h.name === name);
+        setSelectedHospitalId(found?.hospital_id ?? null);
+      }}
+      placeholder="보건소 선택 또는 입력"
+      className="w-full border rounded-md p-2 text-sm"
+      required
+    />
+    <datalist id="hospital-list">
+      {hospitals.map(h => (
+        <option key={h.hospital_id} value={h.name} />
+      ))}
+    </datalist>
           </div>
 
           {/* 역할 선택 */}
