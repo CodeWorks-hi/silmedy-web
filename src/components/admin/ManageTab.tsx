@@ -54,7 +54,7 @@ export default function ManageTab() {
       {!loading && !error && (
         <>
           {/* 테이블 */}
-          <div className="overflow-auto max-h-[600px]">
+          <div className="overflow-auto max-h-[900px]">
             <table className="min-w-full border text-sm">
               <thead className="bg-cyan-100 text-center">
                 <tr>

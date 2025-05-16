@@ -11,7 +11,8 @@ export default function UploadTab() {
     handleFileChange,
     resetFile,
     uploadDoctors,
-    progress
+    progress,
+    errors
   } = useFileUpload();
 
   return (
@@ -84,10 +85,20 @@ export default function UploadTab() {
           onClick={uploadDoctors}
           className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-md"
         >
-          파일등록
+          업로드
         </button>
+       
       </div>
-
+      {errors.length > 0 && (
+        <div className="mt-4 p-4 bg-red-100 rounded">
+          <h3 className="font-bold text-red-600">⚠️ 일부 등록 실패</h3>
+          <ul className="list-disc list-inside text-sm text-red-800">
+            {errors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {/* 샘플 파일 다운로드 버튼 */}
       <div className="flex justify-end mb-4">
         <a

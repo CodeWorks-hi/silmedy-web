@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useDoctors } from '@/features/hooks/useDoctors';
 import { uploadDoctorProfile } from '@/lib/api';
-import { useHospitals }      from '@/features/hooks/useHospitals'
+import { useHospitals } from '@/features/hooks/useHospitals'
 import type { Doctor } from '@/types/consult'
 
 
@@ -88,8 +88,8 @@ export default function EditDoctorModal({
     }
   };
 
-   // 1) 파일 선택 시 로컬 미리보기로만 사용
- const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 1) 파일 선택 시 로컬 미리보기로만 사용
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -107,9 +107,17 @@ export default function EditDoctorModal({
         {/* 프로필 사진 */}
         <div className="flex justify-center mb-6 relative">
           {/** 실제 표시되는 프로필 사진 (formData.profile_url 우선, 없으면 doctor.profile_url) **/}
- <img
-   src={formData.profile_url ?? doctor.profile_url ?? '/default-profile.png'}
-            alt="Profile"
+          <img
+            src={
+              formData.profile_url ||
+              doctor.profile_url ||
+              (doctor.gender === '남' ? '/icon_m.png' : '/icon_g.png')
+            }
+            alt={
+              formData.profile_url || doctor.profile_url
+                ? 'Profile'
+                : (doctor.gender === '남' ? 'Male icon' : 'Female icon')
+            }
             className="w-24 h-24 rounded-full object-cover"
           />
           {/* 투명한 파일 입력(input) */}
