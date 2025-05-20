@@ -15,17 +15,17 @@ jobs:
       - name: SSH 키 설정  
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: known_hosts 등록  
-        run: echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+        run: echo "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
 
       - name: EC2에 배포 스크립트 실행  
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.FRONT_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             # 1) EC2 접속은 이미 SSH-Action이 처리
             # 2) 프로젝트 디렉터리로 이동
