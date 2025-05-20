@@ -1,0 +1,32 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: Add EC2 to known_hosts
+        run: echo "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy Frontend to EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          user: ${{ secrets.EC2_USERNAME }}
+          script: |
+            cd ~/silmedi-frontend
+            git pull origin main
+            docker-compose down frontend
+            docker-compose up -d --build frontend
