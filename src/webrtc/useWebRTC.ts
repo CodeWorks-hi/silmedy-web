@@ -16,8 +16,8 @@ export function useWebRTC(roomId: string) {
     const dc = peer.pc.createDataChannel("subtitles");
     console.log('[WebRTC] created dataChannel on caller side:', peer.dataChannel.readyState);
     setDataChannel(peer.dataChannel);
-    peer.dataChannel.onopen  = () => console.log("📡 [WebRTC] dataChannel OPEN");
-    peer.dataChannel.onclose = () => console.log("📡 [WebRTC] dataChannel CLOSED");
+    peer.dataChannel.onopen  = () => console.log(" [WebRTC] dataChannel OPEN");
+    peer.dataChannel.onclose = () => console.log("[WebRTC] dataChannel CLOSED");
 
     await peer.initLocalMedia();
     setLocalStream(peer.localStream);
