@@ -9,25 +9,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout 코드  
         uses: actions/checkout@v4
 
-      - name: Start SSH agent
+      - name: SSH 키 설정  
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add EC2 to known_hosts
-        run: echo "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+      - name: known_hosts 등록  
+        run: echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy Frontend to EC2
+      - name: EC2에 배포 스크립트 실행  
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.FRONT_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/silmedi-frontend
+            # 1) EC2 접속은 이미 SSH-Action이 처리
+            # 2) 프로젝트 디렉터리로 이동
+            cd ~/silmedy-web
+
+            # 3) 최신 코드 가져오기
             git pull origin main
-            docker-compose down frontend
-            docker-compose up -d --build frontend
+
+            # 4) 기존 컨테이너 중지 및 삭제
+            docker stop silmedy-frontend || true
+            docker rm   silmedy-frontend || true
+
+            # 5) 사용하지 않는 리소스 정리
+            docker system prune -a --volumes -f
+
+            # 6) 캐시 없이 새 이미지 빌드
+            docker build --no-cache -t silmedy-frontend .
+
+            # 7) 기존 컨테이너 강제 삭제(중복 방지)
+            docker rm -f silmedy-frontend || true
+
+            # 8) 새 컨테이너 실행
+            docker run -d \
+              --name silmedy-frontend \
+              -p 3000:3000 \
+              --restart unless-stopped \
+              silmedy-frontend
+
+            # 9) (선택) 상태 확인
+            docker ps
