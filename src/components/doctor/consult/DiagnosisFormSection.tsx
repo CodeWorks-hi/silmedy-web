@@ -1,4 +1,5 @@
 // components/doctor/consult/DiagnosisFormSection.tsx
+
 'use client';
 
 import React, { useState } from 'react';
