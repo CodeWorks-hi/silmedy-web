@@ -77,6 +77,9 @@ npm install
 npm run dev
 ```
 
+### 3. Swagger 문서 확인:
+http://3.34.104.170/docs
+
 ---
 
 ## 👥 역할 기반 접근
